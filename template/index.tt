@@ -1,0 +1,10 @@
+<html>
+[% INCLUDE head.tt %]
+<body>
+<h1>index</h1>
+[% FOR i IN directories %]
+[% i %]
+[% END %]
+</body>
+[% INCLUDE foot.tt %]
+</html>

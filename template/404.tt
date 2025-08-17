@@ -1,0 +1,7 @@
+<html>
+[% INCLUDE head.tt %]
+<body>
+<h1>404</h1>
+</body>
+[% INCLUDE foot.tt %]
+</html>
