@@ -35,7 +35,7 @@ sub GN::cache { # cache{'/some/path'}
 openlog("gorillanest", "ndelay,pid", Sys::Syslog::LOG_DAEMON);
 try {
     my $gitroot = 'git';
-    my $dbfile = 'gorillanest.db';
+    my $dbfile = 'gorillanest.sqlite3';
     #
     my $request = FCGI::Request();
     my $template = Template->new({INCLUDE_PATH => 'template'});
@@ -44,7 +44,15 @@ try {
         AutoCommit => 1,
         sqlite_see_if_its_a_number => 1,
                          }) or die $DBI::errstr;
-    $db->do("CREATE TABLE IF NOT EXISTS users ( id INTEGER PRIMARY KEY, name TEXT NOT NULL CHECK(length(name) <= 32), pass TEXT NOT NULL CHECK(length(pass) <= 128 AND length(pass) >= 32))");
+    $db->do(
+"CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL CHECK(length(name) <= 32),
+        pass TEXT NOT NULL CHECK(length(pass) <= 128
+                             AND length(pass) >= 32),
+                                 UNIQUE(name))");
+    my $sth = $db->prepare("INSERT INTO users (name, pass) VALUES (?, ?)");
+    $sth->execute("test", "PUM6w22pxoGVB03qlgEUVBumYgPL2RTGqegoz8vZf7jpsqRQahC3d2OXOH3qFnvo");
     $db->disconnect;
     #
     my $head = 0;
