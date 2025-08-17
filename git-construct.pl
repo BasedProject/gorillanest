@@ -45,7 +45,8 @@ sub new_repository {
         };
     }
 
-    my $owner = $repo->run('log', '--reverse', '--pretty=format:%an');
+    # first commiter as a fallback
+    my $owner = ($repo->run('log', '--reverse', '--pretty=format:%an'))[0];
 
     return {
         name     => $name,
