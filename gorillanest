@@ -87,7 +87,7 @@ try {
     while($request->Accept() >= 0) {
         my $cgi = CGI->new;
         my %header = (
-            -Content_Type => 'text/plain',
+            -Content_Type => 'text/html',
             -charset      => 'UTF-8',
             );
         my $method = $ENV{'REQUEST_METHOD'} || '';
