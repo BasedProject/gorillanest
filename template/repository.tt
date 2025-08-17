@@ -1,7 +1,9 @@
 <html>
+[% title = "/${name}/${repository}" %]
 [% INCLUDE head.tt %]
 <body>
-<h1>repository</h1>
+  <h1>[% title %]</h1>
+  <p> Eventually this page will have something on it, RIGHT?!</p>
 </body>
 [% INCLUDE foot.tt %]
 </html>
