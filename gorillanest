@@ -47,12 +47,12 @@ sub GN::user { # /$username/
     return \@directories;
 }
 
-sub GN::repository { # /$username/(.*?(\.git)?)
+sub GN::repository { # /$username/$repository
     my ($root, $dataref) = @_;
     my %data = %$dataref;
-    print "* repository: $data{repository}\n";
     my @directories = @{GN::directories(join('/', $root, $data{name}, $data{repository}))};
-    print "@directories\n";
+    return \@directories;
+    # obviously should be doing more
 }
 
 sub GN::cache { # cache{'/some/path'}
@@ -84,6 +84,7 @@ try {
     # $db->disconnect;
     #
     my $head = 0;
+    my $a_template;
     while($request->Accept() >= 0) {
         my $cgi = CGI->new;
         my %header = (
@@ -96,27 +97,23 @@ try {
             $head = 1;
         } elsif ($method eq 'GET') {
             ($data{name}, $data{repository}) = $uri =~ m{/(.*?)/(?:(.*))?};
-            info("name:", $data{name} || '', "repo:", $data{repository} || '');
-            if ($head) { $head = 0; continue; }
+            # info("name:", $data{name} || '', "repo:", $data{repository} || '');
             if ($uri eq '/') {
-                print $cgi->header(%header);
-                print "* Index\n";
-                my @directories = @{GN::index($gitroot, \%data)};
-                print "@directories\n";
-            } elsif ($data{repository}) { # this will generally fail
-                print $cgi->header(%header);
-                print "* Repository\n";
-                my @directories = @{GN::repositories($gitroot, \%data)};
-                print "@directories\n";
-            } elsif ($data{name}) { # this acts like a default case
-                print $cgi->header(%header);
-                print "* User: $data{name}\n";
-                my @directories = @{GN::user($gitroot, \%data)};
-                print "@directories\n";
+                $data{directories} = GN::index($gitroot, \%data);
+                $a_template = "index.tt";
+            } elsif ($data{repository}) {
+                $data{directories} = GN::repositories($gitroot, \%data);
+                $a_template = "repository.tt";
+            } elsif ($data{name}) {
+                $data{directories} = GN::user($gitroot, \%data);
+                $a_template = "index_user.tt";
             } else {
                 $header{-status} = '404 Not Found';
-                print $cgi->header(%header);
+                $a_template = "404.tt";
             }
+            print $cgi->header(%header);
+            if ($head) { $head = 0; continue; }
+            $template->process($a_template, \%data) or info("Template: " . $template->error());
         } else {
             $header{-status} = '405 Method Not Allowed';
             print $cgi->header(%header);
