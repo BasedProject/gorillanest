@@ -17,15 +17,22 @@ sub info {
 }
 
 sub GN::index { # /
-
+    my ($template, $root, $dataref) = @_;
+    my %data = %$dataref;
+    opendir my $dir, $root or die "Cannot open directory: $!";
+    my @files = readdir $dir;
+    info(@files);
+    closedir $dir;
 }
 
 sub GN::user { # /$username/
-
+    my ($template, $root, $dataref) = @_;
+    my %data = %$dataref;
 }
 
 sub GN::repository { # /$username/(.*?(\.git)?)
-
+    my ($template, $root, $dataref) = @_;
+    my %data = %$dataref;
 }
 
 sub GN::cache { # cache{'/some/path'}
@@ -36,6 +43,7 @@ openlog("gorillanest", "ndelay,pid", Sys::Syslog::LOG_DAEMON);
 try {
     my $gitroot = 'git';
     my $dbfile = 'gorillanest.sqlite3';
+    my %data; # useful for minimizing passing and for templating, put default configuration details meant to go on the page in this thing note that it's rw
     #
     my $request = FCGI::Request();
     my $template = Template->new({INCLUDE_PATH => 'template'});
@@ -44,16 +52,16 @@ try {
         AutoCommit => 1,
         sqlite_see_if_its_a_number => 1,
                          }) or die $DBI::errstr;
-    $db->do(
-"CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL CHECK(length(name) <= 32),
-        pass TEXT NOT NULL CHECK(length(pass) <= 128
-                             AND length(pass) >= 32),
-                                 UNIQUE(name))");
-    my $sth = $db->prepare("INSERT INTO users (name, pass) VALUES (?, ?)");
-    $sth->execute("test", "PUM6w22pxoGVB03qlgEUVBumYgPL2RTGqegoz8vZf7jpsqRQahC3d2OXOH3qFnvo");
-    $db->disconnect;
+#     $db->do(
+# "CREATE TABLE IF NOT EXISTS users (
+#         id INTEGER PRIMARY KEY AUTOINCREMENT,
+#         name TEXT NOT NULL CHECK(length(name) <= 32),
+#         pass TEXT NOT NULL CHECK(length(pass) <= 128
+#                              AND length(pass) >= 32),
+#                                  UNIQUE(name))");
+    # my $sth = $db->prepare("INSERT INTO users (name, pass) VALUES (?, ?)");
+    # $sth->execute("test", "PUM6w22pxoGVB03qlgEUVBumYgPL2RTGqegoz8vZf7jpsqRQahC3d2OXOH3qFnvo");
+    # $db->disconnect;
     #
     my $head = 0;
     while($request->Accept() >= 0) {
@@ -67,11 +75,25 @@ try {
         if ($method eq 'HEAD') {
             $head = 1;
         } elsif ($method eq 'GET') {
-            print $cgi->header(%header);
+            ($data{name}, $data{repository}) = $uri =~ m{/(.*?)/(?:(.*))?};
+            info("name:", $data{name}, "repo:", $data{repository});
             if ($head) { $head = 0; continue; }
             if ($uri eq '/') {
-                GN::index($gitroot);
-            } # elsif ($uri ~= m__)
+                print $cgi->header(%header);
+                print "index\n";
+                GN::index($template, $gitroot, \%data);
+            } elsif ($data{repository}) { # this will generally fail
+                print $cgi->header(%header);
+                print "repository\n";
+                GN::repository($template, $gitroot, \%data);
+            } elsif ($data{name}) { # this acts like a default case
+                print $cgi->header(%header);
+                print "user\n";
+                GN::user($template, $gitroot, \%data);
+            } else {
+                $header{-status} = '404 Not Found';
+                print $cgi->header(%header);
+            }
         } else {
             $header{-status} = '405 Method Not Allowed';
             print $cgi->header(%header);
