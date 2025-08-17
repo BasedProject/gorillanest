@@ -11,21 +11,48 @@ use Sys::Syslog;
 use Template;
 use URI::Escape;
 use DBI;
+use Cwd qw();
 
 sub info {
     syslog("info", join(' ', @_));
 }
 
-sub GN::index { # /
+# significant dirs only
+sub GN::directories {
+    opendir my $dir, $_[0] or die "Cannot open directory: $!";
+    my @directories;
+    foreach (readdir $dir) {
+        my %drop = (
+            '.'  => 0,
+            '..' => 0,
+            );
+        push(@directories, $_) if (-d join('/', $_[0], $_) && ($drop{$_} // 1));
+    }
+    closedir $dir;
+    return \@directories;
+}
 
+# probably should output all repos recursively, currently just outputs list of users
+sub GN::index { # /
+    my ($root, $dataref) = @_;
+    my %data = %$dataref;
+    my @directories = @{GN::directories($root)};
+    return \@directories;
 }
 
 sub GN::user { # /$username/
-
+    my ($root, $dataref) = @_;
+    my %data = %$dataref;
+    my @directories = @{GN::directories(join('/', $root, $data{name}))};
+    return \@directories;
 }
 
 sub GN::repository { # /$username/(.*?(\.git)?)
-
+    my ($root, $dataref) = @_;
+    my %data = %$dataref;
+    print "* repository: $data{repository}\n";
+    my @directories = @{GN::directories(join('/', $root, $data{name}, $data{repository}))};
+    print "@directories\n";
 }
 
 sub GN::cache { # cache{'/some/path'}
@@ -35,7 +62,8 @@ sub GN::cache { # cache{'/some/path'}
 openlog("gorillanest", "ndelay,pid", Sys::Syslog::LOG_DAEMON);
 try {
     my $gitroot = 'git';
-    my $dbfile = 'gorillanest.db';
+    my $dbfile = 'gorillanest.sqlite3';
+    my %data; # useful for minimizing passing and for templating, put default configuration details meant to go on the page in this thing note that it's rw
     #
     my $request = FCGI::Request();
     my $template = Template->new({INCLUDE_PATH => 'template'});
@@ -44,8 +72,16 @@ try {
         AutoCommit => 1,
         sqlite_see_if_its_a_number => 1,
                          }) or die $DBI::errstr;
-    $db->do("CREATE TABLE IF NOT EXISTS users ( id INTEGER PRIMARY KEY, name TEXT NOT NULL CHECK(length(name) <= 32), pass TEXT NOT NULL CHECK(length(pass) <= 128 AND length(pass) >= 32))");
-    $db->disconnect;
+    #     $db->do(
+    # "CREATE TABLE IF NOT EXISTS users (
+    #         id INTEGER PRIMARY KEY AUTOINCREMENT,
+    #         name TEXT NOT NULL CHECK(length(name) <= 32),
+    #         pass TEXT NOT NULL CHECK(length(pass) <= 128
+    #                              AND length(pass) >= 32),
+    #                                  UNIQUE(name))");
+    # my $sth = $db->prepare("INSERT INTO users (name, pass) VALUES (?, ?)");
+    # $sth->execute("test", "PUM6w22pxoGVB03qlgEUVBumYgPL2RTGqegoz8vZf7jpsqRQahC3d2OXOH3qFnvo");
+    # $db->disconnect;
     #
     my $head = 0;
     while($request->Accept() >= 0) {
@@ -59,11 +95,28 @@ try {
         if ($method eq 'HEAD') {
             $head = 1;
         } elsif ($method eq 'GET') {
-            print $cgi->header(%header);
+            ($data{name}, $data{repository}) = $uri =~ m{/(.*?)/(?:(.*))?};
+            info("name:", $data{name} || '', "repo:", $data{repository} || '');
             if ($head) { $head = 0; continue; }
             if ($uri eq '/') {
-                GN::index($gitroot);
-            } # elsif ($uri ~= m__)
+                print $cgi->header(%header);
+                print "* Index\n";
+                my @directories = @{GN::index($gitroot, \%data)};
+                print "@directories\n";
+            } elsif ($data{repository}) { # this will generally fail
+                print $cgi->header(%header);
+                print "* Repository\n";
+                my @directories = @{GN::repositories($gitroot, \%data)};
+                print "@directories\n";
+            } elsif ($data{name}) { # this acts like a default case
+                print $cgi->header(%header);
+                print "* User: $data{name}\n";
+                my @directories = @{GN::user($gitroot, \%data)};
+                print "@directories\n";
+            } else {
+                $header{-status} = '404 Not Found';
+                print $cgi->header(%header);
+            }
         } else {
             $header{-status} = '405 Method Not Allowed';
             print $cgi->header(%header);
