@@ -11,28 +11,50 @@ use Sys::Syslog;
 use Template;
 use URI::Escape;
 use DBI;
+use Cwd qw();
 
 sub info {
     syslog("info", join(' ', @_));
 }
 
+# significant dirs only
+sub GN::directories {
+    opendir my $dir, $_[0] or die "Cannot open directory: $!";
+    my @directories;
+    foreach (readdir $dir) {
+        my %drop = (
+            '.'  => 0,
+            '..' => 0,
+            );
+        push(@directories, $_) if (-d join('/', $_[0], $_) && ($drop{$_} // 1));
+    }
+    closedir $dir;
+    return \@directories;
+}
+
+# probably should output all repos recursively, currently just outputs list of users
 sub GN::index { # /
     my ($template, $root, $dataref) = @_;
     my %data = %$dataref;
-    opendir my $dir, $root or die "Cannot open directory: $!";
-    my @files = readdir $dir;
-    info(@files);
-    closedir $dir;
+    print "* index\n";
+    my @directories = @{GN::directories($root)};
+    print "@directories\n";
 }
 
 sub GN::user { # /$username/
     my ($template, $root, $dataref) = @_;
     my %data = %$dataref;
+    print "* user: $data{name}\n";
+    my @directories = @{GN::directories(join('/', $root, $data{name}))};
+    print "@directories\n";
 }
 
 sub GN::repository { # /$username/(.*?(\.git)?)
     my ($template, $root, $dataref) = @_;
     my %data = %$dataref;
+    print "* repository: $data{repository}\n";
+    my @directories = @{GN::directories(join('/', $root, $data{name}, $data{repository}))};
+    print "@directories\n";
 }
 
 sub GN::cache { # cache{'/some/path'}
@@ -52,13 +74,13 @@ try {
         AutoCommit => 1,
         sqlite_see_if_its_a_number => 1,
                          }) or die $DBI::errstr;
-#     $db->do(
-# "CREATE TABLE IF NOT EXISTS users (
-#         id INTEGER PRIMARY KEY AUTOINCREMENT,
-#         name TEXT NOT NULL CHECK(length(name) <= 32),
-#         pass TEXT NOT NULL CHECK(length(pass) <= 128
-#                              AND length(pass) >= 32),
-#                                  UNIQUE(name))");
+    #     $db->do(
+    # "CREATE TABLE IF NOT EXISTS users (
+    #         id INTEGER PRIMARY KEY AUTOINCREMENT,
+    #         name TEXT NOT NULL CHECK(length(name) <= 32),
+    #         pass TEXT NOT NULL CHECK(length(pass) <= 128
+    #                              AND length(pass) >= 32),
+    #                                  UNIQUE(name))");
     # my $sth = $db->prepare("INSERT INTO users (name, pass) VALUES (?, ?)");
     # $sth->execute("test", "PUM6w22pxoGVB03qlgEUVBumYgPL2RTGqegoz8vZf7jpsqRQahC3d2OXOH3qFnvo");
     # $db->disconnect;
@@ -76,19 +98,16 @@ try {
             $head = 1;
         } elsif ($method eq 'GET') {
             ($data{name}, $data{repository}) = $uri =~ m{/(.*?)/(?:(.*))?};
-            info("name:", $data{name}, "repo:", $data{repository});
+            info("name:", $data{name} || '', "repo:", $data{repository} || '');
             if ($head) { $head = 0; continue; }
             if ($uri eq '/') {
                 print $cgi->header(%header);
-                print "index\n";
                 GN::index($template, $gitroot, \%data);
             } elsif ($data{repository}) { # this will generally fail
                 print $cgi->header(%header);
-                print "repository\n";
                 GN::repository($template, $gitroot, \%data);
             } elsif ($data{name}) { # this acts like a default case
                 print $cgi->header(%header);
-                print "user\n";
                 GN::user($template, $gitroot, \%data);
             } else {
                 $header{-status} = '404 Not Found';
