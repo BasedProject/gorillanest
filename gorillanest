@@ -34,23 +34,21 @@ sub GN::directories {
 
 # probably should output all repos recursively, currently just outputs list of users
 sub GN::index { # /
-    my ($template, $root, $dataref) = @_;
+    my ($root, $dataref) = @_;
     my %data = %$dataref;
-    print "* index\n";
     my @directories = @{GN::directories($root)};
-    print "@directories\n";
+    return \@directories;
 }
 
 sub GN::user { # /$username/
-    my ($template, $root, $dataref) = @_;
+    my ($root, $dataref) = @_;
     my %data = %$dataref;
-    print "* user: $data{name}\n";
     my @directories = @{GN::directories(join('/', $root, $data{name}))};
-    print "@directories\n";
+    return \@directories;
 }
 
 sub GN::repository { # /$username/(.*?(\.git)?)
-    my ($template, $root, $dataref) = @_;
+    my ($root, $dataref) = @_;
     my %data = %$dataref;
     print "* repository: $data{repository}\n";
     my @directories = @{GN::directories(join('/', $root, $data{name}, $data{repository}))};
@@ -102,13 +100,19 @@ try {
             if ($head) { $head = 0; continue; }
             if ($uri eq '/') {
                 print $cgi->header(%header);
-                GN::index($template, $gitroot, \%data);
+                print "* Index\n";
+                my @directories = @{GN::index($gitroot, \%data)};
+                print "@directories\n";
             } elsif ($data{repository}) { # this will generally fail
                 print $cgi->header(%header);
-                GN::repository($template, $gitroot, \%data);
+                print "* Repository\n";
+                my @directories = @{GN::repositories($gitroot, \%data)};
+                print "@directories\n";
             } elsif ($data{name}) { # this acts like a default case
                 print $cgi->header(%header);
-                GN::user($template, $gitroot, \%data);
+                print "* User: $data{name}\n";
+                my @directories = @{GN::user($gitroot, \%data)};
+                print "@directories\n";
             } else {
                 $header{-status} = '404 Not Found';
                 print $cgi->header(%header);
