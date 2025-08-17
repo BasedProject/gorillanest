@@ -2,9 +2,7 @@
 [% INCLUDE head.tt %]
 <body>
 <h1>index</h1>
-[% FOR i IN directories %]
-[% i %]
-[% END %]
+<ul>[% FOR i IN directories %]<li>[% i %]</li>[% END %]</ul>
 </body>
 [% INCLUDE foot.tt %]
 </html>

@@ -2,6 +2,7 @@
 [% INCLUDE head.tt %]
 <body>
 <h1>index_user</h1>
+<ul>[% FOR i IN directories %]<li>[% i %]</li>[% END %]</ul>
 </body>
 [% INCLUDE foot.tt %]
 </html>
