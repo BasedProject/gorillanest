@@ -1,0 +1,74 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use CGI;
+use FCGI;
+use Switch::Back;
+use Syntax::Keyword::Try;
+use Sys::Syslog;
+use Template;
+use URI::Escape;
+use DBI;
+
+sub info {
+    syslog("info", join(' ', @_));
+}
+
+sub GN::index { # /
+
+}
+
+sub GN::user { # /$username/
+
+}
+
+sub GN::repository { # /$username/(.*?(\.git)?)
+
+}
+
+sub GN::cache { # cache{'/some/path'}
+
+}
+
+openlog("gorillanest", "ndelay,pid", Sys::Syslog::LOG_DAEMON);
+try {
+    my $gitroot = 'git';
+    my $dbfile = 'gorillanest.db';
+    #
+    my $request = FCGI::Request();
+    my $template = Template->new({INCLUDE_PATH => 'template'});
+    my $db = DBI->connect("dbi:SQLite:dbname=$dbfile","","", {
+        RaiseError => 1,
+        AutoCommit => 1,
+        sqlite_see_if_its_a_number => 1,
+                         }) or die $DBI::errstr;
+    $db->do("CREATE TABLE IF NOT EXISTS users ( id INTEGER PRIMARY KEY, name TEXT NOT NULL CHECK(length(name) <= 32), pass TEXT NOT NULL CHECK(length(pass) <= 128 AND length(pass) >= 32))");
+    $db->disconnect;
+    #
+    my $head = 0;
+    while($request->Accept() >= 0) {
+        my $cgi = CGI->new;
+        my %header = (
+            -Content_Type => 'text/plain',
+            -charset      => 'UTF-8',
+            );
+        my $method = $ENV{'REQUEST_METHOD'} || '';
+        my $uri = $ENV{'REQUEST_URI'} // '/';
+        if ($method eq 'HEAD') {
+            $head = 1;
+        } elsif ($method eq 'GET') {
+            print $cgi->header(%header);
+            if ($head) { $head = 0; continue; }
+            if ($uri eq '/') {
+                GN::index($gitroot);
+            } # elsif ($uri ~= m__)
+        } else {
+            $header{-status} = '405 Method Not Allowed';
+            print $cgi->header(%header);
+        }
+    }
+} catch ($error) {
+    info("Crashed: $error");
+}
