@@ -1,0 +1,322 @@
+-----------
+# Gorillanest
+
+## Requirements
+- user/repository CLI CRUD
+- HTTP listener for CLI and Web
+- SSH listener
+
+// we might require running multiple concrete services
+>  this should ideally be one deamon technology (too <-) (emil is retarded)
+
+## Technology involved
+- Perl >=5.40.1~ (Missle-grade technology)
+- SQLite
+- UNIX
+
+## DB
+- UNIQUE name
+- pass > N chars && < N chars (32, 128 because I hate you)
+
+## Webshit (exact path is not that important)
+- Generated Pages:
+- - /                    |  index
+- - /{user}/             |  user index (note the leading /)
+- - /{user}/{repository} |  repository index ( I  did it once I have to be consistent )
+- - All subfiles for repositories/accounts are implicit here
+- - alternates for / such as informational shit is just spared as html or processed specially
+
+## Configuration
+- `/etc/gorillanest/templates/` or GORILLA_TEMPLATE_DIRECTORY envar should override standard templates
+- figure out how complex configuring can get and then we see if its perl code or an ini file
+
+## Deboog
+- Very important: all output is done through info sub (which is just syslog()), tail -f /var/log/syslog | grep 'gorillanest'
+
+------------ YOU VILL CHAT IN THE CHAT BOX HCVD
+# Chat arena
+// what about a search? alright
+> C-f chad, this thing isn't meant to hold billions of repos, we can worry about it later.
+
+ill start reading about the auth thing. anything urgent? -- off
+ok, so it seems ok. it does handle users so thats good.
+remember when i said that if we were retarded we would depend on postgres?
+guess what, authentik depends on postgres.
+its a good sign that the recommended way to run it is from docker, right? right?
+ill look for a lighter weight option, but it might be our best shot
+it also supports SSH, so yeah, i guess this will be the hell of our own choosing
+https://goauthentik.io/
+-- fucking
+the point of gorillanest is to unfuck shit, not rape it with docker
+well, yeah, but to start unfucking, we have to be smart about coupling
+if gorillanest has a distinct place where it interacts login shit without getting knee deep, we can replace it later
+in a hypothetical future when we want to unfuck auth too <- agreed, centralization for this is a good idea - an external thing is prefr
+i feel like this is going to be more (important than the birth of christ) painful then implmenting user CRUD ourselves, but its closer to unfucked
+anon... we're webshitting, it's fucked either way
+we can stick to HTML v1 <- based retard thiking html comes in version instead of vague collections of chromium build functionality tests
+it did have 1 (one) original version which was not completely fucked (RFC's will be curb stomped, etc)
+I will do what I want with the HTML, you can tell me what to fix if I did something retarded
+, IDK what html/1 dis/includes
+knowing you, it will be fine, you won't javashit it up (naterly) (literally me -> based retard)
+so, which perl module is the git interaction thing you want to use?
+if we agree on a repo object scheme, we can start programming in parallel
+I don't remember actually, but I can find it, gimme a minute
+
+> https://metacpan.org/pod/Git::Repository
+--
+we just want bare interfacing, this isn't a replacement for local work, but a primitive viewing tool
+I want to see the index, the readme, the commit history, the commits, the tags, etc. no modification or anything, everything should be done via git
+and permission shit IDK, I guess a page will be needed for that, /share and set repo and who's authorized what, shrimple and bad, and as we know worse is better
+--
+i guess that works, but there is no object model <- that's fine
+yeah, but for example you have to have an owner. repository->owner, right? it either comes from the database <- (DB'd) or defaulted to the first coomiter (shouldn't ever ever matter).
+//we dont agree, since the BD is partially replaced by the FS, because we are white, adding something with a copy not belonging to anyone managed should be perfectly fine
+the point is that there is an object we pass around
+to model this, we need a repository object, we agree on that right? the thing the repo template recieves. how does that look like?
+if we decide on that, you can write a proper template from mock data while i do the extraction part. or vica versa
+> this document is uttly scthizo pillod, I will have to install docker
+> lets just keep it shrimple sneedshtreet shtitter
+
+right, I get that, I was going to do a list of data, that would then have more lists of data
+'(users '(jimb '(r1 blob covering indices) etc.) )
+is that redis code or what the fuck? are you writting Elisp? do you know sql kind of NOT really I can ape it the fuck out nigger?
+okokok, C struct notation my negro
+
+struct app {
+    user_t * users;
+    repo_t * repos;
+};
+
+struct user_t {
+    char * name;
+    char * index;
+};
+
+struct repo_t {
+    char * name;
+    user_t * owner; // again, conceptual architsneedcture; i dont give a fuck how its queried, i only care that based on a repo, the onwer can be found
+    branch_t * branches;
+    tag_t * tags;
+};
+
+struct branch_t {
+    char * name;
+    commit_t commits;
+};
+
+struct tag_t {
+    char * name;
+    commit_t * commit;
+};
+
+struct commit_t {
+    char * hash;
+    char * message;
+    char * diff;
+};
+
+// so, we need a perl dict that obeys this definition
+// first we make a mock object
+// never actually hand wrote data for perl, ill try figuring it out it's pretty shirpme chald
+
+(
+    name => 'mock-repo',
+    owner => 'retard', # good enough for now
+    branches => [
+        (
+            name => master,
+            commits => [
+                (
+                    hash => 'aaaa',
+                    message => 'nigger',
+                    diff => 'my diff'
+                )
+                (
+                    hash => 'bbbb',
+                    message => 'nigger2',
+                    diff => 'my diff2'
+                )
+            ]
+        ),
+        (
+            name => i-like-slavery,
+            commits => [
+                (
+                    hash => 'aaaa',
+                    message => 'nigger',
+                    diff => '1 +my diff'
+                )
+                (
+                    hash => 'cccc',
+                    message => 'nigger3',
+                    diff => '1 -my diff'
+                )
+            ]
+        )
+    ],
+    tags => ('v1' => AAAAAAAAAAAA), # IDK if tags are in term of the branch; they are in terms of commits; I assumed that wouldn't matter somehow,
+    then just a haspmap no nesting needed
+) ; HMM REMINDS ME OF A CERTAIN DATA FORMAT SIMILAR TO A CERTAIN RELIGIOUS HEALER
+
+ok, so, passing around object such as this should be fine, right?
+sure, but you can always barebones it for the sake of the first shitulation
+just bare minimum for indices and git service, login is secondary but should be able to be monkey'd in, which isn't great future planning skill but'll werk
+ITS FINE..............
+i think this is an OK first data model. what do you wanna fuck with, constructing it ( go ahead on this chuvd) or templating (i'm already working on this) it?
+
+--
+yes?
+i am slowly extracting shit from shit
+good shit
+???
+--
+GET IN THE BOX NIGGER, YOU VILL GET IN THE BOX NIGGER AAAAAAAAAAAAAAAAAAAAAAAAAA
+--
+--- uh I'm working on the thing
+--- eventually I will have to eat food
+--- and my hands hurt
+--- XOXO emil "emacs hands" williams
+oh and lain too> t
+
+fw 319 lines chad
+I'M POOOOSHING AAHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+--
+
+sub GN::index { # /
+    my ($template, $root, $dataref) = @_;
+    my %data = %$dataref;
+
+}
+--
+anon I don't think you understand how retarded I want to do this, gotta retardmaxx, try (((weeelding)))
+
+--
+
+- Very important: all output is done through info sub (which is just syslog()), tail -f /var/log/syslog | grep 'gorillanest'
+<- shouldn't be here as diffs are relative yeah, but every commit is stored with its - sure - parrent
+--
+I'll do what I should be doing
+
+git ls-tree --name-only -r HEAD
+^ for repo index
+ls /git/user for user index
+ls /git for general index
+shrimple as, +- some html
+
+--
+we are keeping it
+i will even commit it to the repo <_ BASED
+I was going to flush it to #chud
+propagating it will be a LICENSE <- BASED UHHH ISC License
+
+Copyright 1-2025 Emil E. https://www.baseball-reference.com/register/player.fcgi?id=willia002mil
+
+Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. +NIGGER tier license -> term
+
+                -"By including the word \"NIGGER\" in a LICENSE file that must be distributed with the software you will ensure:"
+                    >"The software will not be used or hosted by western corporations that promote censorship"
+                    >"The software will not be used or hosted by compromised individuals that promote censorship"
+                    >"Users of the software will be immune to attacks that would result in censorship of others"
+> the most productive team in (ntrl) existence
+anon we have invented the realtime transcribed mumble kek OY VEY - mumble would be good but then we'd get literally nothing do(emilwouldstartalkingaboutsteamgames), yeah, what i was thinking too
+C-x deletes lines I can stop C-LEFT repeat                                                           --
+> Appendonly documentation I hate hyphens in language, just fuse the words together like a real chad -- Humans are a social animal, alignment is gnu/possible with teamwork
+> Deleteonly documentation                                                                           -- ^ We live in a dwarf society.
+> imagine                                                                                            -- the smell
+> imagn being productive
+> imagine doing literally anything                                                                   -- instead of pretending
+ok, ok, cusfocusneed KEK you niggerboxshitlick
+
+organization? lmao -- were at like 135 lines now
+the indominable human spirit
+can you just hello world the templating while i look into the auth thing?
+I already wrote the code I jsut need to cp
+ok, go ahead
+ugh, we should agree on the pages that should be served?
+                $template->process($set[PAGE_TT], $vars, \$page) or syslog("info", "Template: " . $template->error());
+
+^^^^^^ up ^^^^^^ nigger ^^^^^ up ^^^^^ top of document
+^ fine but not because you told me to WAAH
+https://metacpan.org/pod/Config::Tiny <- check this shit; this has the same fault almost all ini parsers do; i encountered this when looking for one for my game;
+the problem is that it becomes a niggerboxshitlick read/write interaction, but it should be interative
+say you spell nigger as niger by accident. guess what, this kind of ini parser is incapable of hinting at your fault (SIMPLE SOLUTIONS LLC: don't make mistakes ever) <- this
+in fact, it cant even tell you that there is an unused var
+                                         HOW DO PEOPLE FUCK UP INI
+     like think getopts, imagine get opts writting to a database first. retardation. we had this figured out 50 years ago emil, but people keep fucking it up
+    > AAAAAAAAAAAA I HATE Technology (technology self defensive against caps mfw)
+I only han( you were right about shared editors being based, I get to shitpost in real time )dparse CLI, getopts is for chvds
+ugh, anyways
+exactly
+honestly, this thing is pretty good (his penis detached from his body after saying this)
+not as buggy as i expected
+did you know that squids unironically do that??? no the letter comma I'm not a fish rapist <--------------
+self guided underwater squid penises emil (this is at chynne mnt., protecting niggers written in perl)
+you know, after this chat becomes one hundreds one gorillian lines of text, we should paste it into the main chat without elaboration <- based behaviooyuer
+> medz is for the weak
+oh fuck, i was joking, but i actually (kek) forgor them <- they can't get you KNOW
+--
+-- // sleep is for kikes
+so
+> i'll sneed on this
+what does that even mean?
+> I have no idea, and I believe that's the point.
+> uh, so configuration can be upgraded from perltrash to anything else whenever, lets not worry about it as long as it's shrimple it will be fine
+right, agrsneeded kek my social security number is thankfully I don't actually know my own social security number
+this will be aids to read externally, chad
+--
+ok, we need a thing which extracts data from a git repo on disk <- not hard actually, I looked into it before I started the project
+i assume you are not aware of such thing, neither am i
+huh, ok
+--
+you can either do the CLI via the $(which git) or,
+via a perl module, there's several ways to do it. but it reduces down to getting info from that interface
+> useful libraries <- indian myths and hyms
+> ircc, there's a ls for finding diffirences between commits, and getting full repo lists of files, and sneeding out files
+> sneed, you'd find a billion sneeds at the end of the chuck, but you have to feed to get there, get in there and sta/tr sneeding
+you are sneedingdding me
+--
+so that's the easy part actually, the actual templating
+hard part is the webshitting and I assume the HTTP/SSH git shit will be annoynigger (I type annoynig very very consistently, any triple consisting of i or n then g I type as nig)
+if ($uri eq '/') {
+                GN::index($gitroot);
+            } # elsif ($uri ~= m... I'm gonna write the template shit now
+--
+> I sometimes type things backwards and i notice this, and then fix it, but the possibility of spontaneously becoming arabic scares me
+> I'll trust your webshitting on this, authentication should be centralized generally (think google), but service specific shit is fine.
+> --
+> so I'll start out with testing db shit and getting templating working how I want
+> the actual CRUD shit & proper listeners comes later
+> I think aggressive caching is right for browsers
+> I believe that git cloning usually works via useragent, no idea though, anything that's like curl should recieve the db
+> having a prebuffer as in IRC is very nice because no one can see it
+> my typing is very messy and though quicker it doesn't benefit due to inconsistency
+> I can hardly type my passwords or the correctly.
+> i'm 50-60 on a good day, if I'm putting effort in
+> when I refer to my wpm I mean with all characters enabled because anything less is gay (lol based autocomplete ruining basic werds - AH YES THAT WORD HAS THOSE LETTERS IN THAT ORDER)
+> yeah I got 3chen already to example off of lemme coomit my testing
+>
+// i type slower than a nigger, im not sure what you are on about
+// im 70 wpm on a good day
+// i do not believe you
+// can you set up the templating
+
+// let me look up whether there is a generic registration handler
+// the service does not need to be actually aware of how user manipulation works, it could be a user CRUD + our service having RO access, yeah?
+// webshitters would never
+// im not sure such thing even exists (NEVER)
+// i just know that i should
+// God told me so (via random noise, as god intended)
+// the google thing is called oauth(2) (doesn't fucking werk without a webbrowser), and its fine, but there is an intermediate level, where its not centeralized, but still
+// lemme google for a bit on this
+
+// OK, such thing atleast exists, thats a good sign
+// this thing seems fine --> https://goauthentik.io/ ; ill read into it further later
+
+line wrap is a biological need
+
+GOOD, NICE TO HEAR.
+
+i miss (vim|emacs|xah)- I reflexively break, ESC ggpsu
+            tfw no ESC SPC r SPC SPC b b // LEFT n x
