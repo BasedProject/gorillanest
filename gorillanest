@@ -17,13 +17,14 @@ sub info {
 
 # significant dirs only
 sub GN::directories {
-    opendir my $dir, $_[0] or die "Cannot open directory: $!";
+    my $root = $_[0];
+    opendir my $dir, $root or die "Cannot open directory: $!";
     my @directories;
+    my %drop = (
+        '.'  => 0,
+        '..' => 0,
+        );
     foreach (readdir $dir) {
-        my %drop = (
-            '.'  => 0,
-            '..' => 0,
-            );
         push(@directories, $_) if (-d join('/', $_[0], $_) && ($drop{$_} // 1));
     }
     closedir $dir;
@@ -34,35 +35,34 @@ sub GN::directories {
 sub GN::index { # /
     my ($root, $dataref) = @_;
     my %data = %$dataref;
-    my @directories = @{GN::directories($root)};
-    return \@directories;
+    my @directories = map { my $i = $_; map { join('/', $i, $_) } @{GN::directories(join('/', $root, $i))} } @{GN::directories($root)};
+    $data{directories} = \@directories;
+    if ($data{directories}) { $data{found} = 1; }
+    return \%data;
 }
 
 sub GN::user { # /$username/
     my ($root, $dataref) = @_;
     my %data = %$dataref;
     my @directories = @{GN::directories(join('/', $root, $data{name}))};
-    return \@directories;
+    $data{directories} = \@directories;
+    if ($data{directories}) { $data{found} = 1; }
+    return \%data;
 }
 
 sub GN::repository { # /$username/$repository
     my ($root, $dataref) = @_;
     my %data = %$dataref;
-    my @directories = @{GN::directories(join('/', $root, $data{name}, $data{repository}))};
-    return \@directories;
-    # obviously should be doing more
-}
-
-sub GN::cache { # cache{'/some/path'}
-
+    return \%data;
 }
 
 openlog("gorillanest", "ndelay,pid", Sys::Syslog::LOG_DAEMON);
 try {
     my $public = 'git/public';
     my $dbfile = 'gorillanest.sqlite3';
-    my %data; # useful for minimizing passing and for templating, put default configuration details meant to go on the page in this thing note that it's rw
-    #
+    my %data = (
+        found => 0,
+        );
     my $request = FCGI::Request();
     my $template = Template->new({INCLUDE_PATH => 'template'});
     my $head = 0;
@@ -78,19 +78,19 @@ try {
         if ($method eq 'HEAD') {
             $head = 1;
         } elsif ($method eq 'GET') {
-            ($data{name}, $data{repository}) = $uri =~ m{/([a-z]*)/(?:([a-z]*(?:.git)?))?};
-            # info("name:", $data{name} || '', "repo:", $data{repository} || '');
+            ($data{name}, $data{repository}) = $uri =~ m{/([a-zA-Z0-9_]+?)/(?:([a-zA-Z0-9_]+(?:.git)?))?}; # [[:alnum:]] didn't work
+            info("name:", $data{name} || '', "repo:", $data{repository} || '');
             if ($uri eq '/') {
-                $data{directories} = GN::index($public, \%data);
+                %data = %{GN::index($public, \%data)};
                 $a_template = "index.tt";
             } elsif ($data{repository}) {
-                $data{directories} = GN::repositories($public, \%data);
+                %data = %{GN::repository($public, \%data)};
                 $a_template = "repository.tt";
             } elsif ($data{name}) {
-                $data{directories} = GN::user($public, \%data);
+                %data = %{GN::user($public, \%data)};
                 $a_template = "index_user.tt";
             }
-            if (!$data{directories}) {
+            if (!$data{found}) {
                 $header{-status} = '404 Not Found';
                 $a_template = "404.tt";
             }
