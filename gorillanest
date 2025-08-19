@@ -11,6 +11,7 @@ use Sys::Syslog;
 use Template;
 use URI::Escape;
 
+use Data::Dumper;
 sub info {
     syslog("info", join(' ', @_));
 }
@@ -53,6 +54,8 @@ sub GN::user { # /$username/
 sub GN::repository { # /$username/$repository
     my ($root, $dataref) = @_;
     my %data = %$dataref;
+    $data{log} = Dumper(split(/\n/, qx(git log --pretty=format:\'%H | %an | %ad | %s%x0a\'))); # It technically works # | tac | tr -s \'\n\'
+    $data{found} = 1;
     return \%data;
 }
 
