@@ -81,7 +81,7 @@ try {
         if ($method eq 'HEAD') {
             $head = 1;
         } elsif ($method eq 'GET') {
-            ($data{username}, $data{repository}) = $uri =~ m{/([a-zA-Z0-9_]+?)/(?:([a-zA-Z0-9_.]+))?}; # [[:alnum:]] didn't work
+            ($data{username}, $data{repository}) = $uri =~ m{^/([a-zA-Z0-9_]+)(?:/([a-zA-Z0-9_\.]+))?$}; # [[:alnum:]] didn't work
             info("name:", $data{username} || '', "repo:", $data{repository} || '');
             if ($uri eq '/') {
                 %data = %{GN::index($public, \%data)};

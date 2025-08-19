@@ -1,5 +1,5 @@
 <html>
-[% title = "/${name}/${repository}" %]
+[% title = "/${username}/${repository}" %]
 [% INCLUDE head.tt %]
 <body>
   <h1>[% title %]</h1>
