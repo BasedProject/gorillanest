@@ -45,7 +45,7 @@ sub GN::index { # /
 sub GN::user { # /$username/
     my ($root, $dataref) = @_;
     my %data = %$dataref;
-    my @directories = @{GN::directories(join('/', $root, $data{name}))};
+    my @directories = @{GN::directories(join('/', $root, $data{username}))};
     $data{directories} = \@directories;
     if ($data{directories}) { $data{found} = 1; }
     return \%data;
@@ -54,7 +54,7 @@ sub GN::user { # /$username/
 sub GN::repository { # /$username/$repository
     my ($root, $dataref) = @_;
     my %data = %$dataref;
-    $data{log} = Dumper(split(/\n/, qx(git log --pretty=format:\'%H | %an | %ad | %s%x0a\'))); # It technically works # | tac | tr -s \'\n\'
+    $data{log} = Dumper(split(/\n/, qx(cd $root/$data{username}/$data{repository} && git log --pretty=format:\'%H | %an | %ad | %s%x0a\'))); # It technically works # | tac | tr -s \'\n\'
     $data{found} = 1;
     return \%data;
 }
@@ -81,15 +81,15 @@ try {
         if ($method eq 'HEAD') {
             $head = 1;
         } elsif ($method eq 'GET') {
-            ($data{name}, $data{repository}) = $uri =~ m{/([a-zA-Z0-9_]+?)/(?:([a-zA-Z0-9_]+(?:.git)?))?}; # [[:alnum:]] didn't work
-            info("name:", $data{name} || '', "repo:", $data{repository} || '');
+            ($data{username}, $data{repository}) = $uri =~ m{/([a-zA-Z0-9_]+?)/(?:([a-zA-Z0-9_.]+))?}; # [[:alnum:]] didn't work
+            info("name:", $data{username} || '', "repo:", $data{repository} || '');
             if ($uri eq '/') {
                 %data = %{GN::index($public, \%data)};
                 $a_template = "index.tt";
             } elsif ($data{repository}) {
                 %data = %{GN::repository($public, \%data)};
                 $a_template = "repository.tt";
-            } elsif ($data{name}) {
+            } elsif ($data{username}) {
                 %data = %{GN::user($public, \%data)};
                 $a_template = "index_user.tt";
             }
