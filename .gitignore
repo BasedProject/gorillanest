@@ -1,3 +1,4 @@
-*.sqlite
+*.sqlite3
 git/*
-!git/.gitkeep
+!git/public/.gitkeep
+!git/private/.gitkeep

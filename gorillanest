@@ -10,7 +10,6 @@ use Syntax::Keyword::Try;
 use Sys::Syslog;
 use Template;
 use URI::Escape;
-use DBI;
 
 sub info {
     syslog("info", join(' ', @_));
@@ -60,28 +59,12 @@ sub GN::cache { # cache{'/some/path'}
 
 openlog("gorillanest", "ndelay,pid", Sys::Syslog::LOG_DAEMON);
 try {
-    my $gitroot = 'git';
+    my $public = 'git/public';
     my $dbfile = 'gorillanest.sqlite3';
     my %data; # useful for minimizing passing and for templating, put default configuration details meant to go on the page in this thing note that it's rw
     #
     my $request = FCGI::Request();
     my $template = Template->new({INCLUDE_PATH => 'template'});
-    my $db = DBI->connect("dbi:SQLite:dbname=$dbfile","","", {
-        RaiseError => 1,
-        AutoCommit => 1,
-        sqlite_see_if_its_a_number => 1,
-                         }) or die $DBI::errstr;
-    #     $db->do(
-    # "CREATE TABLE IF NOT EXISTS users (
-    #         id INTEGER PRIMARY KEY AUTOINCREMENT,
-    #         name TEXT NOT NULL CHECK(length(name) <= 32),
-    #         pass TEXT NOT NULL CHECK(length(pass) <= 128
-    #                              AND length(pass) >= 32),
-    #                                  UNIQUE(name))");
-    # my $sth = $db->prepare("INSERT INTO users (name, pass) VALUES (?, ?)");
-    # $sth->execute("test", "PUM6w22pxoGVB03qlgEUVBumYgPL2RTGqegoz8vZf7jpsqRQahC3d2OXOH3qFnvo");
-    # $db->disconnect;
-    #
     my $head = 0;
     my $a_template;
     while($request->Accept() >= 0) {
@@ -95,18 +78,19 @@ try {
         if ($method eq 'HEAD') {
             $head = 1;
         } elsif ($method eq 'GET') {
-            ($data{name}, $data{repository}) = $uri =~ m{/(.*?)/(?:(.*))?};
+            ($data{name}, $data{repository}) = $uri =~ m{/([a-z]*)/(?:([a-z]*(?:.git)?))?};
             # info("name:", $data{name} || '', "repo:", $data{repository} || '');
             if ($uri eq '/') {
-                $data{directories} = GN::index($gitroot, \%data);
+                $data{directories} = GN::index($public, \%data);
                 $a_template = "index.tt";
             } elsif ($data{repository}) {
-                $data{directories} = GN::repositories($gitroot, \%data);
+                $data{directories} = GN::repositories($public, \%data);
                 $a_template = "repository.tt";
             } elsif ($data{name}) {
-                $data{directories} = GN::user($gitroot, \%data);
+                $data{directories} = GN::user($public, \%data);
                 $a_template = "index_user.tt";
-            } else {
+            }
+            if (!$data{directories}) {
                 $header{-status} = '404 Not Found';
                 $a_template = "404.tt";
             }

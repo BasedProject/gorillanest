@@ -1,0 +1,22 @@
+server {
+    server_name gorillanest.example.com;
+    add_header Content-Security-Policy "default-src 'self';" always;
+    root /var/www/gorillanest;
+
+    location = /gorillanest {
+        add_header Cache-Control "max-age=0; must-revalidate; no-cache";
+        include fastcgi_params;
+        fastcgi_pass  unix:/run/fcgiwrap.socket;
+    }
+
+    location ~ \.(jpg|png|avif|css)$ {
+        root /var/www/gorillanest/static;
+    }
+
+    rewrite ^/ /gorillanest;
+}
+
+# Notice: AIDS
+# I changed the deployment copy in some critical areas
+# will update this file when things are more ratified server-side, and remove this notice
+# P.S. You VILL constantly backport gorillians of minor improvement tweaks
