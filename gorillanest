@@ -61,6 +61,7 @@ sub GN::repository { # /$username/$repository
 }
 
 openlog("gorillanest", "ndelay,pid", Sys::Syslog::LOG_DAEMON);
+my $sock = FCGI::OpenSocket('/tmp/gorillanest.socket', 100);
 try {
     my $public = 'git/public';
     my $dbfile = 'gorillanest.sqlite3';
@@ -68,7 +69,8 @@ try {
         found => 0,
         access => 0,
         );
-    my $request = FCGI::Request();
+
+    my $request = FCGI::Request(\*STDIN, \*STDOUT, \*STDERR, \%ENV, $sock);
     my $template = Template->new({INCLUDE_PATH => 'template'});
     my $head = 0;
     my $a_template;
@@ -111,3 +113,4 @@ try {
 } catch ($error) {
     info("Crashed: $error");
 }
+FCGI::CloseSocket($sock);
