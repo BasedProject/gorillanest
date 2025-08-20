@@ -1,2 +1,2 @@
 serve-dev:
-	lighttpd -D -f ./lighttpd-cgi.conf
+	lighttpd -D -f ./service/lighttpd-cgi.conf
