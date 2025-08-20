@@ -1,9 +1,19 @@
 #!/usr/bin/env perl
 
+# XXX
+# why are we passing around root like a cheap whore?                            because root is where things are (f(x) -> y)
+# looking into it, i think we should have a global config object using
+# https://metacpan.org/pod/Readonly                                             fuck read only, constants are for faggots
+#
+# i modified the routing heavily, this is how people do it;                     very scary
+# pretty clean
+# you must also realize that not all routes are necessarily templates,          then they are routed by nginx.
+# it could be a redirect for example, so the original solution would
+# complicate beyond comprehension                                               ACK.
+
 use strict;
 use warnings;
 use CGI;
-use Switch::Back;
 use Template;
 use URI::Escape;
 use Cwd;
@@ -17,7 +27,14 @@ sub info {
     warn join(' ', @_);
 }
 
-our $template = Template->new({INCLUDE_PATH => 'template'});
+
+sub serve_template {
+    my $template = Template->new({INCLUDE_PATH => 'template'});
+    my ($template_name, $data) = @_;
+
+    $template->process($template_name, $data)
+        or info("Template: " . $template->error());
+}
 
 # significant dirs only
 sub GN::directories {
@@ -37,49 +54,46 @@ sub GN::directories {
 
 # probably should output all repos recursively, currently just outputs list of users
 sub GN::index { # /
-    my ($root, $dataref) = @_;
-    my %data = %$dataref;
+    my ($root) = @_;
+    my %data;
+
     my @directories = map { my $i = $_; map { join('/', $i, $_) } @{GN::directories(join('/', $root, $i))} } @{GN::directories($root)};
     $data{directories} = \@directories;
     if ($data{directories}) { $data{found} = 1; }
-    return \%data;
+
+    serve_template("index.tt", \%data);
 }
 
 sub GN::user { # /$username/
-    my ($root, $dataref) = @_;
-    my %data = %$dataref;
+    my ($root, $username) = @_;
+
+    my %data;
     my @directories = @{GN::directories(join('/', $root, $data{username}))};
     $data{directories} = \@directories;
     if ($data{directories}) { $data{found} = 1; }
-    return \%data;
+
+    serve_template("index_user.tt", \%data);
 }
 
 sub GN::repository { # /$username/$repository
-    my ($root, $dataref) = @_;
-    my %data = %$dataref;
-    $data{found} = 0;
-    return \%data;
-}
+    my ($root, $username, $repository) = @_;
 
-sub serve_template {
-    my ($file, @rest) = @_;
-    my %vars = @rest ? @rest : ();
-    
-    $template->process($file, \%vars)
-        or info("Template: " . $template->error());
+    die 'not implemented';
 }
-
-my %routes = (
-    '/'                                   => sub { serve_template("index.tt", @_) },
-    '/~([a-zA-Z0-9_.]+)'                  => sub { serve_template("index_user.tt", @_) },
-    '/~([a-zA-Z0-9_.]+)/([a-zA-Z0-9_.]+)' => sub { serve_template("repository.tt", @_) },
-);
 
 my $root = GIT_ROOT;
 my $dbfile = DB_FILE;
+
 my %data = (
     found => 0,
 );
+
+my %routes = (
+    '/'                   => sub { GN::index($root); },
+    '/~([\w.]+)'          => sub { GN::user($root, @_) },
+    '/~([\w.]+)/([\w.]+)' => sub { GN::repository($root, @_) },
+);
+my %route_regex_cache = map { $_ => qr{^$_$} } keys %routes;
 
 sub master {
 	my $cgi = CGI->new;
@@ -91,13 +105,14 @@ sub master {
 	my $uri = $ENV{'REQUEST_URI'} || '/';
 
 	for my $pattern (keys %routes) {
-		if ($uri =~ m{^$pattern$}) {
+		if ($uri =~ $route_regex_cache{$pattern}) {
 			my $handler = $routes{$pattern};
 			$handler->($uri, $1, $2, $3);
+            return;
 		}
 	}
 
-	serve_template("404.tt"); # XXX missing code
+	serve_template("404.tt", {}); # XXX missing code
 }
 
 master() if !caller;

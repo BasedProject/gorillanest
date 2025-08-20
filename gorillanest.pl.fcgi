@@ -7,7 +7,6 @@ use Syntax::Keyword::Try;
 use FCGI;
 
 use lib '.';
-# BEGIN { require 'config.pl'; }
 BEGIN { require 'gorillanest.pl.cgi'; }
 
 try {
