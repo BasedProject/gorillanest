@@ -1,4 +1,5 @@
 # always assume anything to do with files is from project root
+use constant LOG_FILE => '/tmp/gorillanest.log';
 use constant GIT_ROOT => 'git'; # directory containing all browsable $users/$repositories
 use constant DB_FILE => 'gorillanest.sqlite3'; # sqlite3 database file location
 use constant TEMPLATE_ROOT => 'template'; # template directory

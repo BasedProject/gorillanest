@@ -22,7 +22,7 @@ sub info {
 # significant dirs only
 sub GN::directories {
     my $root = $_[0];
-    opendir my $dir, $root or die "Cannot open directory: $!";
+    opendir my $dir, $root or die "$root: $!";
     my @directories;
     my %drop = (
         '.'  => 0,
@@ -62,7 +62,7 @@ sub GN::repository { # /$username/$repository
 }
 
 sub GN::main {
-    open STDERR, '>', '/tmp/gorillanest.log' or die "You Will Never Ever See This Message Hopefully: $!";
+    open STDERR, '>', LOG_FILE or die LOG_FILE . ": $!";
     my $sock = FCGI::OpenSocket('/tmp/gorillanest.socket', 100);
     try {
         my $root = GIT_ROOT;
