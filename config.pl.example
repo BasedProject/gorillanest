@@ -1,0 +1,6 @@
+# always assume anything to do with files is from project root
+use constant GIT_ROOT => 'git'; # directory containing all browsable $users/$repositories
+use constant DB_FILE => 'gorillanest.sqlite3'; # sqlite3 database file location
+use constant TEMPLATE_ROOT => 'template'; # template directory
+use constant USER_REPOSITORY => qr{^/([a-zA-Z0-9_.]+)(?:/([a-zA-Z0-9_.]+))?}; # $1 = username, $2 = repository fullname
+1;
