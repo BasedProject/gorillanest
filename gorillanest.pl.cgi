@@ -8,10 +8,14 @@ use Switch::Back;
 use Template;
 use URI::Escape;
 use Cwd;
-
 use Data::Dumper;
+use Git::Repository;
+
+use lib '.';
+BEGIN { require 'config.pl'; }
+
 sub info {
-    print STDERR join(' ', @_);
+    warn join(' ', @_);
 }
 
 our $template = Template->new({INCLUDE_PATH => 'template'});
@@ -54,12 +58,7 @@ sub GN::user { # /$username/
 sub GN::repository { # /$username/$repository
     my ($root, $dataref) = @_;
     my %data = %$dataref;
-    my $d = getcwd();
-    chdir(join('/', $root, $data{username}, $data{repository}));
-    warn 'sneed ' . getcwd() . "\n";
-    $data{log} = Dumper(split(/\n/, qx(git log --pretty=format:\'%H | %an | %ad | %s%x0a\'))); # It technically works # | tac | tr -s \'\n\'
-    chdir($d);
-    $data{found} = 1;
+    $data{found} = 0;
     return \%data;
 }
 
