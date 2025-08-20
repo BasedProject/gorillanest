@@ -1,5 +1,13 @@
 #!/usr/bin/env perl
 
+# XXX
+# why are we passing around root like a cheap whore?
+# looking into it, i think we should have a global config object using
+# https://metacpan.org/pod/Readonly
+#
+# i modified the routing heavily, this is how people do it;
+# pretty clean
+
 use strict;
 use warnings;
 
@@ -19,6 +27,13 @@ sub info {
 
 our $template = Template->new({INCLUDE_PATH => 'template'});
 
+sub serve_template {
+    my ($template_name, $data) = @_;
+
+    $template->process($template_name, $data)
+        or info("Template: " . $template->error());
+}
+
 # significant dirs only
 sub GN::directories {
     my $root = $_[0];
@@ -37,50 +52,45 @@ sub GN::directories {
 
 # probably should output all repos recursively, currently just outputs list of users
 sub GN::index { # /
-    my ($root, $dataref) = @_;
-    my %data = %$dataref;
+    my ($root) = @_;
+    my %data;
+
     my @directories = map { my $i = $_; map { join('/', $i, $_) } @{GN::directories(join('/', $root, $i))} } @{GN::directories($root)};
     $data{directories} = \@directories;
     if ($data{directories}) { $data{found} = 1; }
-    return \%data;
+
+    serve_template("index.tt", \%data);
 }
 
 sub GN::user { # /$username/
-    my ($root, $dataref) = @_;
-    my %data = %$dataref;
+    my ($root, $username) = @_;
+
+    my %data;
     my @directories = @{GN::directories(join('/', $root, $data{username}))};
     $data{directories} = \@directories;
     if ($data{directories}) { $data{found} = 1; }
-    return \%data;
+
+    serve_template("index_user.tt", \%data);
 }
 
 sub GN::repository { # /$username/$repository
-    my ($root, $dataref) = @_;
-    my %data = %$dataref;
-    $data{found} = 0;
-    return \%data;
-}
+    my ($root, $username, $repository) = @_;
 
-sub serve_template {
-    my ($file, @rest) = @_;
-    my %vars = @rest ? @rest : ();
-    
-    $template->process($file, \%vars)
-        or info("Template: " . $template->error());
+    die 'not implemented';
 }
-
-my %routes = (
-    '/'                    => sub { serve_template("index.tt", @_) },
-    '/~([\w+.])'           => sub { serve_template("index_user.tt", @_) },
-    '/~([\w+.])/([\w+.]+)' => sub { serve_template("repository.tt", @_) },
-);
-my %route_regex_cache = map { $_ => qr{^$_$} } keys %routes;
 
 my $public = 'repos/';
 my $dbfile = 'gorillanest.sqlite3';
 my %data = (
     found => 0,
 );
+
+my %routes = (
+    '/'                   => sub { GN::index($public); },
+    '/~([\w.]+)'          => sub { GN::user($public, @_) },
+    '/~([\w.]+)/([\w.]+)' => sub { GN::repository($public, @_) },
+);
+my %route_regex_cache = map { $_ => qr{^$_$} } keys %routes;
 
 sub master {
 	my $cgi = CGI->new;
@@ -99,7 +109,7 @@ sub master {
 		}
 	}
 
-	serve_template("404.tt"); # XXX missing code
+	serve_template("404.tt", {}); # XXX missing code
 }
 
 master() if !caller; 1;
