@@ -4,7 +4,6 @@ use strict;
 use warnings;
 
 use CGI;
-use Switch::Back;
 use Template;
 use URI::Escape;
 use Cwd;

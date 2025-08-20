@@ -1,5 +1,7 @@
+nytprof/
 *.sqlite3
-config.pl
+*.db
+*.out
 git/*
 !git/public/.gitkeep
 !git/private/.gitkeep
