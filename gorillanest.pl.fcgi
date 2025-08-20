@@ -6,7 +6,7 @@ use warnings;
 use Syntax::Keyword::Try;
 use FCGI;
 
-require "gorillanest.pl.cgi";
+BEGIN { require 'gorillanest.pl.cgi'; }
 
 our $request = FCGI::Request();
 

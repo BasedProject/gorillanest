@@ -70,12 +70,13 @@ sub serve_template {
 }
 
 my %routes = (
-    '/'                                   => sub { serve_template("index.tt", @_) },
-    '/~([a-zA-Z0-9_.]+)'                  => sub { serve_template("index_user.tt", @_) },
-    '/~([a-zA-Z0-9_.]+)/([a-zA-Z0-9_.]+)' => sub { serve_template("repository.tt", @_) },
+    '/'                    => sub { serve_template("index.tt", @_) },
+    '/~([\w+.])'           => sub { serve_template("index_user.tt", @_) },
+    '/~([\w+.])/([\w+.]+)' => sub { serve_template("repository.tt", @_) },
 );
+my %route_regex_cache = map { $_ => qr{^$_$} } keys %routes;
 
-my $public = 'git/public';
+my $public = 'repos/';
 my $dbfile = 'gorillanest.sqlite3';
 my %data = (
     found => 0,
@@ -91,9 +92,10 @@ sub master {
 	my $uri = $ENV{'REQUEST_URI'} || '/';
 
 	for my $pattern (keys %routes) {
-		if ($uri =~ m{^$pattern$}) {
+		if ($uri =~ $route_regex_cache{$pattern}) {
 			my $handler = $routes{$pattern};
 			$handler->($uri, $1, $2, $3);
+            return;
 		}
 	}
 
