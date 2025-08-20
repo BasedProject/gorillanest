@@ -7,6 +7,9 @@
 #
 # i modified the routing heavily, this is how people do it;
 # pretty clean
+# you must also realize that not all routes are necessarily templates,
+# it could be a redirect for example, so the original solution would
+# complicate beyond comprehension
 
 use strict;
 use warnings;
