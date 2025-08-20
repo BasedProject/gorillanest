@@ -11,6 +11,7 @@ use Sys::Syslog;
 use Template;
 use URI::Escape;
 use Cwd;
+use Git::Repository;
 
 use Data::Dumper;
 sub info {
@@ -33,17 +34,16 @@ sub GN::directories {
     return \@directories;
 }
 
-# probably should output all repos recursively, currently just outputs list of users
 sub GN::index { # /
     my ($root, $dataref) = @_;
     my %data = %$dataref;
-    my @directories = map { my $i = $_; map { join('/', $i, $_) } @{GN::directories(join('/', $root, $i))} } @{GN::directories($root)};
-    $data{directories} = \@directories;
+    my @users = @{GN::directories($root)};
+    my @directories = map { my $i = $_; map { join('/', $i, $_) } @{GN::directories(join('/', $root, $i))} } @users;
     if ($data{directories}) { $data{found} = 1; }
     return \%data;
 }
 
-sub GN::user { # /$username/
+sub GN::user { # /$username
     my ($root, $dataref) = @_;
     my %data = %$dataref;
     my @directories = @{GN::directories(join('/', $root, $data{username}))};
@@ -55,12 +55,7 @@ sub GN::user { # /$username/
 sub GN::repository { # /$username/$repository
     my ($root, $dataref) = @_;
     my %data = %$dataref;
-    my $d = getcwd();
-    chdir(join('/', $root, $data{username}, $data{repository}));
-    warn 'sneed ' . getcwd() . "\n";
-    $data{log} = Dumper(split(/\n/, qx(git log --pretty=format:\'%H | %an | %ad | %s%x0a\'))); # It technically works # | tac | tr -s \'\n\'
-    chdir($d);
-    $data{found} = 1;
+    # one day
     return \%data;
 }
 
@@ -70,12 +65,14 @@ try {
     my $dbfile = 'gorillanest.sqlite3';
     my %data = (
         found => 0,
+        access => 0,
         );
     my $request = FCGI::Request();
     my $template = Template->new({INCLUDE_PATH => 'template'});
     my $head = 0;
     my $a_template;
     while($request->Accept() >= 0) {
+        $data{access} += 1;
         my $cgi = CGI->new;
         my %header = (
             -Content_Type => 'text/html',

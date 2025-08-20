@@ -6,6 +6,7 @@
 <h1>[% title %]</h1>
 <h2>[% description %]</h2>
 <ul>[% FOR i IN directories %]<li><a href="/[% i %]">/[% i %]</a></li>[% END %]</ul>
+<p>one million [% access %] xolatile's</p>
 </body>
 [% INCLUDE foot.tt %]
 </html>
