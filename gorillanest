@@ -11,7 +11,7 @@ use Sys::Syslog;
 use Template;
 use URI::Escape;
 use Cwd;
-use Git::Repository;
+# use Git::Repository;
 
 use Data::Dumper;
 sub info {
@@ -34,16 +34,17 @@ sub GN::directories {
     return \@directories;
 }
 
+# probably should output all repos recursively, currently just outputs list of users
 sub GN::index { # /
     my ($root, $dataref) = @_;
     my %data = %$dataref;
-    my @users = @{GN::directories($root)};
-    my @directories = map { my $i = $_; map { join('/', $i, $_) } @{GN::directories(join('/', $root, $i))} } @users;
+    my @directories = map { my $i = $_; map { join('/', $i, $_) } @{GN::directories(join('/', $root, $i))} } @{GN::directories($root)};
+    $data{directories} = \@directories;
     if ($data{directories}) { $data{found} = 1; }
     return \%data;
 }
 
-sub GN::user { # /$username
+sub GN::user { # /$username/
     my ($root, $dataref) = @_;
     my %data = %$dataref;
     my @directories = @{GN::directories(join('/', $root, $data{username}))};
@@ -55,7 +56,7 @@ sub GN::user { # /$username
 sub GN::repository { # /$username/$repository
     my ($root, $dataref) = @_;
     my %data = %$dataref;
-    # one day
+    $data{found} = 0;
     return \%data;
 }
 
