@@ -3,9 +3,7 @@
 use strict;
 use warnings;
 use CGI;
-use FCGI;
 use Switch::Back;
-use Syntax::Keyword::Try;
 use Template;
 use URI::Escape;
 use Cwd;
@@ -18,6 +16,8 @@ BEGIN { require 'config.pl'; }
 sub info {
     warn join(' ', @_);
 }
+
+our $template = Template->new({INCLUDE_PATH => 'template'});
 
 # significant dirs only
 sub GN::directories {
@@ -61,61 +61,45 @@ sub GN::repository { # /$username/$repository
     return \%data;
 }
 
-sub GN::main {
-    open STDERR, '>', LOG_FILE or die LOG_FILE . ": $!";
-    my $sock = FCGI::OpenSocket('/tmp/gorillanest.socket', 100);
-    try {
-        my $root = GIT_ROOT;
-        my $dbfile = DB_FILE;
-        my %data = (
-            found => 0,
-            access => 0,
-            );
-
-        my $request = FCGI::Request(\*STDIN, \*STDOUT, \*STDERR, \%ENV, $sock);
-        my $template = Template->new({INCLUDE_PATH => TEMPLATE_ROOT});
-        my $head = 0;
-        my $a_template;
-        while($request->Accept() >= 0) {
-            $data{access} += 1;
-            my $cgi = CGI->new;
-            my %header = (
-                -Content_Type => 'text/html',
-                -charset      => 'UTF-8',
-                );
-            my $method = $ENV{'REQUEST_METHOD'} || '';
-            my $uri = $ENV{'REQUEST_URI'} || '/';
-            if ($method eq 'HEAD') {
-                $head = 1;
-            } elsif ($method eq 'GET') {
-                ($data{username}, $data{repository}) = $uri =~ USER_REPOSITORY;
-                info("name:", $data{username} || '', "repo:", $data{repository} || '');
-                if ($uri eq '/') {
-                    %data = %{GN::index($root, \%data)};
-                    $a_template = "index.tt";
-                } elsif ($data{repository}) {
-                    %data = %{GN::repository($root, \%data)};
-                    $a_template = "repository.tt";
-                } elsif ($data{username}) {
-                    %data = %{GN::user($root, \%data)};
-                    $a_template = "index_user.tt";
-                }
-                if (!$data{found}) {
-                    $header{-status} = '404 Not Found';
-                    $a_template = "404.tt";
-                }
-                print $cgi->header(%header);
-                if ($head) { $head = 0; continue; }
-                $template->process($a_template, \%data) or info("Template: " . $template->error());
-            } else {
-                $header{-status} = '405 Method Not Allowed';
-                print $cgi->header(%header);
-            }
-        }
-    } catch ($error) {
-        info("Crashed: $error");
-    }
-    FCGI::CloseSocket($sock);
+sub serve_template {
+    my ($file, @rest) = @_;
+    my %vars = @rest ? @rest : ();
+    
+    $template->process($file, \%vars)
+        or info("Template: " . $template->error());
 }
 
-GN::main();
+my %routes = (
+    '/'                                   => sub { serve_template("index.tt", @_) },
+    '/~([a-zA-Z0-9_.]+)'                  => sub { serve_template("index_user.tt", @_) },
+    '/~([a-zA-Z0-9_.]+)/([a-zA-Z0-9_.]+)' => sub { serve_template("repository.tt", @_) },
+);
+
+my $root = GIT_ROOT;
+my $dbfile = DB_FILE;
+my %data = (
+    found => 0,
+);
+
+sub master {
+	my $cgi = CGI->new;
+	my %header = (
+		-Content_Type => 'text/html',
+		-charset      => 'UTF-8',
+		);
+	my $method = $ENV{'REQUEST_METHOD'} || '';
+	my $uri = $ENV{'REQUEST_URI'} || '/';
+
+	for my $pattern (keys %routes) {
+		if ($uri =~ m{^$pattern$}) {
+			my $handler = $routes{$pattern};
+			$handler->($uri, $1, $2, $3);
+		}
+	}
+
+	serve_template("404.tt"); # XXX missing code
+}
+
+master() if !caller;
+
+1;
