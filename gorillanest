@@ -7,7 +7,6 @@ use CGI;
 use FCGI;
 use Switch::Back;
 use Syntax::Keyword::Try;
-use Sys::Syslog;
 use Template;
 use URI::Escape;
 use Cwd;
@@ -15,7 +14,7 @@ use Cwd;
 
 use Data::Dumper;
 sub info {
-    syslog("info", join(' ', @_));
+    warn join(' ', @_);
 }
 
 # significant dirs only
@@ -60,7 +59,7 @@ sub GN::repository { # /$username/$repository
     return \%data;
 }
 
-openlog("gorillanest", "ndelay,pid", Sys::Syslog::LOG_DAEMON);
+open STDERR, '>', '/tmp/gorillanest.log' or die "You Will Never Ever See This Message Hopefully: $!";
 my $sock = FCGI::OpenSocket('/tmp/gorillanest.socket', 100);
 try {
     my $public = 'git/public';
