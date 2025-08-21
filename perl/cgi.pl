@@ -113,6 +113,7 @@ sub GN::cgi {
 }
 
 sub GN::init() {
+    my $root = GIT_ROOT;
     my %data = (
         found => 0,
         );
@@ -126,7 +127,6 @@ sub GN::init() {
 }
 
 sub GN::main() {
-    my $root = GIT_ROOT;
     my ($data, $routes, $routes_cache) = GN::init();
     GN::cgi($data, $routes, $routes_cache);
 }
