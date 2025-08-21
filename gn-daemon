@@ -29,13 +29,6 @@ HOST_KEY_PATH = "gn_host_key"   # XXX
 LISTEN_ADDR = "0.0.0.0"
 LISTEN_PORT = 2222
 
-def connection_made(conn):
-    log.info("Connection from %s", conn.get_extra_info("peername"))
-
-def connection_lost(exc):
-    if exc: log.warning("Connection error: %s", exc)
-    else: log.info("Connection closed")
-
 def validate_password(username, password):
     return username == "anon" and password == "passwd"
 
@@ -45,9 +38,6 @@ def validate_password(username, password):
 #   this class doesn't dominate the script,
 #   and its never in question what should and should not be inside it.
 class GNServer(asyncssh.SSHServer):
-    def connection_made(self, conn): connection_made(conn)
-    def connection_lost(self, exc):  connection_lost(exc)
-
     def begin_auth(self, username):    return True
     def password_auth_supported(self): return True
 
@@ -72,8 +62,11 @@ async def gn_process(proc : asyncssh.SSHServerProcess):
         while True:
             data = await reader.read(4096)
             if not data: break
+            if isinstance(data, bytes):
+                # do this or we get "utf_8_encode() argument 1 must be str, not bytes"
+                data = data.decode('utf-8')
             log.info(data)
-            writer.write(str(data))
+            writer.write(data)
             await writer.drain()
 
     sub = await asyncio.create_subprocess_exec(
