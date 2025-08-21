@@ -20,9 +20,15 @@ use Cwd;
 use Data::Dumper;
 use Git::Repository;
 
-use lib '.';
-BEGIN { require 'config.default.pl'; }
-BEGIN { require 'config.pl'; }
+use lib qw(. ..);
+BEGIN {
+    # ignores redefinition... and everything else
+    open my $stderr, '>&', \*STDERR;
+    open STDERR, '>', '/dev/null';
+    require 'config.default.pl';
+    require 'config.pl' if -f 'config.pl';
+    open STDERR, '>&', $stderr;
+}
 
 sub info {
     warn join(' ', @_);
@@ -82,21 +88,8 @@ sub GN::repository { # /$username/$repository
     die 'not implemented';
 }
 
-my $root = GIT_ROOT;
-my $dbfile = DB_FILE;
-
-my %data = (
-    found => 0,
-);
-
-my %routes = (
-    '/'                   => sub { GN::index($root); },
-    '/~([\w.]+)'          => sub { GN::user($root, @_) },
-    '/~([\w.]+)/([\w.]+)' => sub { GN::repository($root, @_) },
-);
-my %route_regex_cache = map { $_ => qr{^$_$} } keys %routes;
-
-sub master {
+sub GN::cgi {
+    my ($data, $routes, $routes_cache) = @_;
 	my $cgi = CGI->new;
 	my %header = (
 		-Content_Type => 'text/html',
@@ -105,9 +98,12 @@ sub master {
 	my $method = $ENV{'REQUEST_METHOD'} || '';
 	my $uri = $ENV{'REQUEST_URI'} || '/';
 
-	for my $pattern (keys %routes) {
-		if ($uri =~ $route_regex_cache{$pattern}) {
-			my $handler = $routes{$pattern};
+    print $cgi->header;
+    return if $method eq 'HEAD';
+
+	for my $pattern (keys %$routes) {
+		if ($uri =~ $routes_cache->{$pattern}) {
+			my $handler = $routes->{$pattern};
 			$handler->($uri, $1, $2, $3);
             return;
 		}
@@ -116,6 +112,25 @@ sub master {
 	serve_template("404.tt", {}); # XXX missing code
 }
 
-master() if !caller;
+sub GN::init() {
+    my $root = GIT_ROOT;
+    my %data = (
+        found => 0,
+        );
+    my %routes = (
+        '/'                   => sub { GN::index($root); },
+        '/~([\w.]+)'          => sub { GN::user($root, @_) },
+        '/~([\w.]+)/([\w.]+)' => sub { GN::repository($root, @_) },
+        );
+    my %routes_cache = map { $_ => qr{^$_$} } keys %routes;
+    return \%data, \%routes, \%routes_cache;
+}
+
+sub GN::main() {
+    my ($data, $routes, $routes_cache) = GN::init();
+    GN::cgi($data, $routes, $routes_cache);
+}
+
+GN::main() if !caller;
 
 1;
