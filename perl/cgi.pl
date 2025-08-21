@@ -20,7 +20,7 @@ use Cwd;
 use Data::Dumper;
 use Git::Repository;
 
-use lib '.';
+use lib qw(. ..);
 BEGIN { require 'config.default.pl'; }
 BEGIN { require 'config.pl'; }
 

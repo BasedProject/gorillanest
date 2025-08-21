@@ -6,8 +6,8 @@ use warnings;
 use Syntax::Keyword::Try;
 use FCGI;
 
-use lib '.';
-BEGIN { require 'gorillanest.pl.cgi'; }
+use lib qw(perl);
+BEGIN { require 'cgi.pl'; }
 
 while (1) {
     try {
