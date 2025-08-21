@@ -21,8 +21,14 @@ use Data::Dumper;
 use Git::Repository;
 
 use lib qw(. ..);
-BEGIN { require 'config.default.pl'; }
-BEGIN { require 'config.pl' if -f 'config.pl'; }
+BEGIN {
+    # ignores redefinition... and everything else
+    open my $stderr, '>&', \*STDERR;
+    open STDERR, '>', '/dev/null';
+    require 'config.default.pl';
+    require 'config.pl' if -f 'config.pl';
+    open STDERR, '>&', $stderr;
+}
 
 sub info {
     warn join(' ', @_);
@@ -87,13 +93,13 @@ my $dbfile = DB_FILE;
 
 my %data = (
     found => 0,
-);
+    );
 
 my %routes = (
     '/'                   => sub { GN::index($root); },
     '/~([\w.]+)'          => sub { GN::user($root, @_) },
     '/~([\w.]+)/([\w.]+)' => sub { GN::repository($root, @_) },
-);
+    );
 my %route_regex_cache = map { $_ => qr{^$_$} } keys %routes;
 
 sub master {
