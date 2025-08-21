@@ -13,7 +13,7 @@ while (1) {
     try {
         my $request = FCGI::Request( \*STDIN, \*STDOUT, \*STDERR, \%ENV, BARE_REQUEST ? 0 : FCGI::OpenSocket(SOCKET_FILE, SOCKET_MAX_CONNECTIONS));
         while($request->Accept() >= 0) {
-            master();
+            GN::cgi();
         }
     } catch ($error) {
         info("Crashed: $error");

@@ -88,21 +88,8 @@ sub GN::repository { # /$username/$repository
     die 'not implemented';
 }
 
-my $root = GIT_ROOT;
-my $dbfile = DB_FILE;
-
-my %data = (
-    found => 0,
-    );
-
-my %routes = (
-    '/'                   => sub { GN::index($root); },
-    '/~([\w.]+)'          => sub { GN::user($root, @_) },
-    '/~([\w.]+)/([\w.]+)' => sub { GN::repository($root, @_) },
-    );
-my %route_regex_cache = map { $_ => qr{^$_$} } keys %routes;
-
-sub master {
+sub GN::cgi {
+    my ($data, $routes, $routes_cache) = @_;
 	my $cgi = CGI->new;
 	my %header = (
 		-Content_Type => 'text/html',
@@ -111,9 +98,12 @@ sub master {
 	my $method = $ENV{'REQUEST_METHOD'} || '';
 	my $uri = $ENV{'REQUEST_URI'} || '/';
 
-	for my $pattern (keys %routes) {
-		if ($uri =~ $route_regex_cache{$pattern}) {
-			my $handler = $routes{$pattern};
+    print $cgi->header;
+    return if $method eq 'HEAD';
+
+	for my $pattern (keys %$routes) {
+		if ($uri =~ $routes_cache->{$pattern}) {
+			my $handler = $routes->{$pattern};
 			$handler->($uri, $1, $2, $3);
             return;
 		}
@@ -122,6 +112,23 @@ sub master {
 	serve_template("404.tt", {}); # XXX missing code
 }
 
-master() if !caller;
+sub GN::main() {
+    my $root = GIT_ROOT;
+    my %data = (
+        found => 0,
+        );
+
+    my %routes = (
+        '/'                   => sub { GN::index($root); },
+        '/~([\w.]+)'          => sub { GN::user($root, @_) },
+        '/~([\w.]+)/([\w.]+)' => sub { GN::repository($root, @_) },
+        );
+
+    my %routes_cache = map { $_ => qr{^$_$} } keys %routes;
+
+    GN::cgi(\%data, \%routes, \%routes_cache);
+}
+
+GN::main() if !caller;
 
 1;
