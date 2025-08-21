@@ -22,7 +22,7 @@ use Git::Repository;
 
 use lib qw(. ..);
 BEGIN { require 'config.default.pl'; }
-BEGIN { require 'config.pl'; }
+BEGIN { require 'config.pl' if -f 'config.pl'; }
 
 sub info {
     warn join(' ', @_);

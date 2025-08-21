@@ -1,6 +1,6 @@
 # always assume anything to do with files or directories is ran at project root
 
-no warnings 'redefine';
+no warnings;
 
 use constant {
 
@@ -10,7 +10,6 @@ BARE_REQUEST           => 0,
 
 IMMORTAL               => 1, # will continue handling request after death/error
 
-LOG_FILE               => '/tmp/gorillanest.log',
 DB_FILE                => 'gorillanest.sqlite3', # sqlite3
 
 SOCKET_FILE            => '/tmp/gorillanest.socket',
