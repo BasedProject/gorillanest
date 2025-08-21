@@ -17,6 +17,6 @@ SOCKET_MAX_CONNECTIONS => 100,
 TEMPLATE_ROOT          => 'template', # template directory
 GIT_ROOT               => 'git',      # git directory (~user/repo)
 
-}
+};
 
 1;
