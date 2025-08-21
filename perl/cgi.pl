@@ -112,21 +112,23 @@ sub GN::cgi {
 	serve_template("404.tt", {}); # XXX missing code
 }
 
-sub GN::main() {
-    my $root = GIT_ROOT;
+sub GN::init() {
     my %data = (
         found => 0,
         );
-
     my %routes = (
         '/'                   => sub { GN::index($root); },
         '/~([\w.]+)'          => sub { GN::user($root, @_) },
         '/~([\w.]+)/([\w.]+)' => sub { GN::repository($root, @_) },
         );
-
     my %routes_cache = map { $_ => qr{^$_$} } keys %routes;
+    return \%data, \%routes, \%routes_cache;
+}
 
-    GN::cgi(\%data, \%routes, \%routes_cache);
+sub GN::main() {
+    my $root = GIT_ROOT;
+    my ($data, $routes, $routes_cache) = GN::init();
+    GN::cgi($data, $routes, $routes_cache);
 }
 
 GN::main() if !caller;
