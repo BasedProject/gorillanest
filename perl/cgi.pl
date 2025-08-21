@@ -1,14 +1,30 @@
 #!/usr/bin/env perl
 
-# XXX
-# why are we passing around root like a cheap whore?                            because root is where things are (f(x) -> y)
-# looking into it, i think we should have a global config object using
-# https://metacpan.org/pod/Readonly                                             fuck read only, constants are for faggots
+# > perl/cgi.pl
+# what the bloody fuck is wrong with you?
+# why is there a perl folder???
+# its source / scripts at worst, but what the fuck is a perl folder meant to represent?
+# you wanted groupping by files types anyways? we already had that, its called extensions!
+# you encoded in the name that its cgi, but not what its a cgi for. might as well me just 'pl'
+# to encode its perl bro.
+# in fact, i think you *should* call it perl/pl
 #
+# non retarded options:
+# * frontend/cgi.pl
+# * source/gorillanest.cgi.pl
+# * gorillanest-frontend.cgi.pl
+# or any combination of the above, because the problem is not "what is the best name",
+# but "OH GOD perl/cgi.pl IS RETARDED"
+
+# XXX
+# why are we passing around root like a cheap whore?                            because root is where things are (f(x) -> y)        have you considered suicide?
+# looking into it, i think we should have a global config object using
+# https://metacpan.org/pod/Readonly                                             fuck read only, constants are for faggots           says the nigger who has a "globals are evil phase".
+#                                                                                                                                   choose one retard
 # i modified the routing heavily, this is how people do it;                     very scary
 # pretty clean
-# you must also realize that not all routes are necessarily templates,          then they are routed by nginx.
-# it could be a redirect for example, so the original solution would
+# you must also realize that not all routes are necessarily templates,          then they are routed by nginx.                      no you gorilla nigger because of coupling.
+# it could be a redirect for example, so the original solution would                                                                you want your server to do a bare minimum
 # complicate beyond comprehension                                               ACK.
 
 use strict;
