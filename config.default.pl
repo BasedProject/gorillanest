@@ -1,5 +1,7 @@
 # always assume anything to do with files or directories is ran at project root
 
+no warnings 'redefine';
+
 use constant {
 
 # If you're using lighttpd, set this to 1
