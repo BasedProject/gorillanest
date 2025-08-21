@@ -21,8 +21,10 @@ use Data::Dumper;
 use Git::Repository;
 
 use lib qw(. ..);
+no warnings 'redefine';
 BEGIN { require 'config.default.pl'; }
 BEGIN { require 'config.pl'; }
+use warnings 'redefine';
 
 sub info {
     warn join(' ', @_);

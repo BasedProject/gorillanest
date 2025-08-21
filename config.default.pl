@@ -1,18 +1,22 @@
 # always assume anything to do with files or directories is ran at project root
 
+use constant {
+
 # If you're using lighttpd, set this to 1
 # This disables SOCKET_FILE and lets the socket handling be externally managed
-use constant BARE_REQUEST => 0;
+BARE_REQUEST           => 0,
 
-use constant IMMORTAL => 1; # will continue handling request after death/error
+IMMORTAL               => 1, # will continue handling request after death/error
 
-use constant LOG_FILE => '/tmp/gorillanest.log';
-use constant DB_FILE => 'gorillanest.sqlite3'; # sqlite3
+LOG_FILE               => '/tmp/gorillanest.log',
+DB_FILE                => 'gorillanest.sqlite3', # sqlite3
 
-use constant SOCKET_FILE => '/tmp/gorillanest.socket';
-use constant SOCKET_MAX_CONNECTIONS => 100;
+SOCKET_FILE            => '/tmp/gorillanest.socket',
+SOCKET_MAX_CONNECTIONS => 100,
 
-use constant TEMPLATE_ROOT => 'template'; # template directory
-use constant GIT_ROOT => 'git'; # git directory (~user/repo)
+TEMPLATE_ROOT          => 'template', # template directory
+GIT_ROOT               => 'git',      # git directory (~user/repo)
+
+}
 
 1;
