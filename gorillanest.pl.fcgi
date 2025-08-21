@@ -11,8 +11,7 @@ BEGIN { require 'gorillanest.pl.cgi'; }
 
 try {
     open STDERR, '>', LOG_FILE or die LOG_FILE . ": $!";
-    my $sock = FCGI::OpenSocket(SOCKET_FILE, 100);
-    my $request = FCGI::Request(\*STDIN, \*STDOUT, \*STDERR, \%ENV, $sock);
+    my $request = FCGI::Request( \*STDIN, \*STDOUT, \*STDERR, \%ENV, BARE_REQUEST ? 0 : FCGI::OpenSocket(SOCKET_FILE, SOCKET_MAX_CONNECTIONS));
     while($request->Accept() >= 0) {
 		master();
     }

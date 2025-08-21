@@ -21,6 +21,7 @@ use Data::Dumper;
 use Git::Repository;
 
 use lib '.';
+BEGIN { require 'config.default.pl'; }
 BEGIN { require 'config.pl'; }
 
 sub info {
