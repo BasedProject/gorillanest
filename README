@@ -52,20 +52,10 @@
 *         WKꓵΓꓕᖉⱯ ACTIVATION TRANMISSION RECIEVED: GO RI LL A_ NE ST         *
 * Copyright 2025-∞ People's Republic of Magyarország & Emil's Email Services *
 
+---
 
 Gitea broke so I had a low wage hungarian programmer write this.
 
-Everything runs from this directory via './gorillanest'.
+Everything runs from this directory via 'make'.
 
 ---
-
-./git               -- Root (~$user/$repository)
-./marketing         -- Useless Trash
-./perl              -- Perl Source
-./service           -- lighttpd, nginx, and other service files
-./static            -- Static Served Files
-./template          -- Perl Templates
-./config.default.pl -- default configuration, don't edit this, copy it to ./config.pl
-./config.pl         -- (nonexistant) configuration overrides against ./config.default.pl
-./gorillanest       -- Runscript
-./Makefile          -- Anon's autism for starting webserver
