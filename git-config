@@ -1,0 +1,12 @@
+# Wrapper around `git config` for gorillanest
+#  for the following reasons:
+# 1) its easiest if gn-daemon has an argv[0] whitelist
+#     for commands, however exposing the whole of `git`
+#     is not a good idea
+# 2) `git config` allows adding arbitrary fields,
+#     which could lead to a theoritical situation
+#     where an attacker hides data in plain sight
+#     without ways to monitor or limit his uploads
+
+# XXX: a special field should be added called sync,
+#  which determines mirror frequency
