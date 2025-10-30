@@ -48,11 +48,16 @@ sub new_repository {
     # first commiter as a fallback
     my $owner = ($repo->run('log', '--reverse', '--pretty=format:%an'))[0];
 
+    my @files = $repo->run('ls-tree', '--name-only', 'HEAD');
+
     return {
         name     => $name,
         owner    => $owner,
         branches => \@branches,
+        files    => \@files,
     };
 }
 
-print Dumper( new_repository('./') );
+print Dumper( new_repository('./') ) unless caller;
+
+1;

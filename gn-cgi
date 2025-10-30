@@ -1,21 +1,5 @@
 #!/usr/bin/env perl
 
-# > perl/cgi.pl
-# what the bloody fuck is wrong with you?
-# why is there a perl folder???
-# its source / scripts at worst, but what the fuck is a perl folder meant to represent?
-# you wanted groupping by files types anyways? we already had that, its called extensions!
-# you encoded in the name that its cgi, but not what its a cgi for. might as well me just 'pl'
-# to encode its perl bro.
-# in fact, i think you *should* call it perl/pl
-#
-# non retarded options:
-# * frontend/cgi.pl
-# * source/gorillanest.cgi.pl
-# * gorillanest-frontend.cgi.pl
-# or any combination of the above, because the problem is not "what is the best name",
-# but "OH GOD perl/cgi.pl IS RETARDED"
-
 # XXX
 # why are we passing around root like a cheap whore?                            because root is where things are (f(x) -> y)        have you considered suicide?
 # looking into it, i think we should have a global config object using
@@ -32,9 +16,11 @@ use warnings;
 use CGI;
 use Template;
 use URI::Escape;
-use Cwd;
 use Data::Dumper;
 use Git::Repository;
+
+$ENV{PATH} = 'cgi_PATH/';
+require 'perl-modules/git-construct.pl';
 
 use lib qw(. ..);
 BEGIN {
@@ -50,7 +36,6 @@ sub info {
     warn join(' ', @_);
 }
 
-
 sub serve_template {
     my $template = Template->new({INCLUDE_PATH => 'template'});
     my ($template_name, $data) = @_;
@@ -59,15 +44,14 @@ sub serve_template {
         or info("Template: " . $template->error());
 }
 
-# significant dirs only
-sub GN::directories {
-    my $root = $_[0];
-    opendir my $dir, $root or die "$root: $!";
+sub path_to_list_of_directories {
+    my $path = $_[0];
+    opendir my $dir, $path or die "$path: $!";
     my @directories;
-    my %drop = (
+    my %drop = ( # significant dirs only
         '.'  => 0,
         '..' => 0,
-        );
+    );
     foreach (readdir $dir) {
         push(@directories, $_) if (-d join('/', $_[0], $_) && ($drop{$_} // 1));
     }
@@ -75,44 +59,53 @@ sub GN::directories {
     return \@directories;
 }
 
-# probably should output all repos recursively, currently just outputs list of users
-sub GN::index { # /
-    my ($root) = @_;
+# --- Page handlers
+sub serve_index { # /
+    my ($uri) = @_;
     my %data;
 
-    my @directories = map { my $i = $_; map { join('/', $i, $_) } @{GN::directories(join('/', $root, $i))} } @{GN::directories($root)};
+    my @directories = map { my $i = $_; map { join('/', $i, $_) } @{directories(join('/', $uri, $i))} } @{directories($uri)};
     $data{directories} = \@directories;
     if ($data{directories}) { $data{found} = 1; }
 
     serve_template("index.tt", \%data);
 }
 
-sub GN::user { # /$username/
-    my ($root, $username) = @_;
+sub serve_user { # /$username/
+    my ($uri, $username) = @_;
 
     my %data;
-    my @directories = @{GN::directories(join('/', $root, $data{username}))};
+    my @directories = @{path_to_list_of_directories(join('/', GIT_ROOT, $username))};
+    # XXX mangle raw directories to valid repository links
     $data{directories} = \@directories;
+    $data{username}    = $username;
     if ($data{directories}) { $data{found} = 1; }
 
     serve_template("index_user.tt", \%data);
 }
 
-sub GN::repository { # /$username/$repository
-    my ($root, $username, $repository) = @_;
+sub serve_repository { # /$username/$repository
+    my ($uri, $username, $repository) = @_;
 
-    die 'not implemented';
+    my %data;
+    $data{username}     = $username;
+    $data{repository}   = $repository;
+    $data{h_repository} = new_repository('/home/anon/Swap/gorillanest/');
+
+    serve_template("repository.tt", \%data);
 }
 
-sub GN::cgi {
+# ---
+
+sub cgi {
     my ($data, $routes, $routes_cache) = @_;
 	my $cgi = CGI->new;
 	my %header = (
 		-Content_Type => 'text/html',
 		-charset      => 'UTF-8',
-		);
+	);
 	my $method = $ENV{'REQUEST_METHOD'} || '';
-	my $uri = $ENV{'REQUEST_URI'} || '/';
+	my $uri    = $ENV{'REQUEST_URI'} || '/';
 
     print $cgi->header;
     return if $method eq 'HEAD';
@@ -128,25 +121,27 @@ sub GN::cgi {
 	serve_template("404.tt", {}); # XXX missing code
 }
 
-sub GN::init() {
-    my $root = GIT_ROOT;
+sub init() {
     my %data = (
         found => 0,
-        );
+    );
+
     my %routes = (
-        '/'                   => sub { GN::index($root); },
-        '/~([\w.]+)'          => sub { GN::user($root, @_) },
-        '/~([\w.]+)/([\w.]+)' => sub { GN::repository($root, @_) },
-        );
+        '/'                   => sub { serve_index(@_)      },
+        '/~([\w.]+)'          => sub { serve_user(@_)       },
+        '/~([\w.]+)/([\w.]+)' => sub { serve_repository(@_) },
+    );
+    # Regexes are slow, so we precompile them once
     my %routes_cache = map { $_ => qr{^$_$} } keys %routes;
+
     return \%data, \%routes, \%routes_cache;
 }
 
-sub GN::main() {
-    my ($data, $routes, $routes_cache) = GN::init();
-    GN::cgi($data, $routes, $routes_cache);
+sub main() {
+    my ($data, $routes, $routes_cache) = init();
+    cgi($data, $routes, $routes_cache);
 }
 
-GN::main() if !caller;
+main() unless caller;
 
 1;

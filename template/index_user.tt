@@ -1,9 +1,0 @@
-<html>
-[% title = "${username} Index" %]
-[% INCLUDE head.tt %]
-<body>
-<h1>[% title %]</h1>
-<ul>[% FOR i IN directories %]<li><a href="/[% username %]/[% i %]">/[% username %]/[% i %]</a></li>[% END %]</ul>
-</body>
-[% INCLUDE foot.tt %]
-</html>

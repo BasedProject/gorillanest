@@ -14,8 +14,8 @@ DB_FILE                => 'gorillanest.sqlite3', # sqlite3
 SOCKET_FILE            => '/tmp/gorillanest.socket',
 SOCKET_MAX_CONNECTIONS => 100,
 
-TEMPLATE_ROOT          => 'template', # template directory
-GIT_ROOT               => 'git',      # git directory (~user/repo)
+TEMPLATE_ROOT          => 'www/template', # template directory
+GIT_ROOT               => 'repositories',      # git directory (~user/repo)
 
 };
 

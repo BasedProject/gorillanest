@@ -1,0 +1,13 @@
+<html>
+[% title = "User ${username}" %]
+[% INCLUDE head.tt %]
+<body>
+    <h1>[% title %]</h1>
+    <ul>
+        [% FOR i IN directories %]
+        <li><a href="/[% username %]/[% i %]">/[% username %]/[% i %]</a></li>
+        [% END %]
+    </ul>
+    [% INCLUDE footer.tt %]
+</body>
+</html>

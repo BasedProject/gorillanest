@@ -4,6 +4,6 @@
 <body>
   <h1>[% title %]</h1>
   <p>It's fucking over</p>
+  [% INCLUDE footer.tt %]
 </body>
-[% INCLUDE foot.tt %]
 </html>

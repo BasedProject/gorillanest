@@ -1,0 +1,21 @@
+<html>
+[% title = "ACTIVATION PHRASE: GORILLA NEST" %]
+[% description = "Git In The Gorilla Nest!" %]
+[% INCLUDE head.tt %]
+<body>
+[% INCLUDE header.tt %]
+<div>
+    <center>
+        <h1>[% title %]</h1>
+        <h2>[% description %]</h2>
+    </center>
+    <p>Content:</p>
+    <ul>
+        [% FOR i IN directories %]
+            <li><a href="/[% i %]">/[% i %]</a></li>
+        [% END %]
+    </ul>
+</div>
+[% INCLUDE footer.tt %]
+</body>
+</html>
