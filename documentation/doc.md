@@ -1,0 +1,71 @@
+# Gorillanest
+
+## Tech stack
+* Perl for webdev
+* Python for SSH daemon
+* SQLite and files for storage
+
+## Project structure
+| Path                 | Description |
+| :------------------- | :---------- |
+| repositories/        | Default git repository storage path |
+| dummy\_repositories/ | Mock repositories/ contents for testing |
+| perl-module/         | Perl dependencies | # XXX remove
+| service/             | Service files {lighttpd, nginx, cron} |
+| static/              | # XXX -> server/
+| template/            | # XXX -> server/
+| config.default.pl    | Default configuration, don't edit this, copy it to ./config.pl |
+| config.pl            | (Nonexistant.) Configuration overrides against ./config.default.pl |
+| Makefile             | Anon's autism for starting webserver |
+| gn-cgi               | Web service script |
+| gn-fcgi              | Fast cgi wrapper for gn-cli |
+
+> [!NOTE]
+> Executables are allways stored top level.
+
+## URL scheme
+| Path              | Description |
+| :---------------- | :---------- |
+| /                 | Index |
+| /~{user}          | User index |
+| /~{user}/{repo}   | Repository index |
+| /explore          | Project listing |
+| /login            | Redirection to authenticator service |
+
+## Configuration
+XXX Use an ini file.
+Each section references a service.
+Each daemon will read its own section
+
+## Users
+A registered user a user that can login.
+
+Registered users are not managed by Gorillanest dirrectly,
+instead an authenticator is used.
+The authenticator is a service dedicated to perform user CRUD.
+Scrimshaw is the only supported authenticator.
+
+Registered users can perform various remote commands over SSH or HTTP.
+
+## Repository management
+As mentioned registered users can perform various repository tasks by commanding Gorillanest daemons.
+
+Alternatively, the git root can be written by hand, similar to cgit.
+Git repositories inserted directly into the git root will show up
+under the reserved pseudo-user `anonymous`.
+Prepending a parent directory will similarly show up as an unregistered-user.
+Inserting a git repository into a registered user's home will similarly work.
+
+## Git config extensions
+Git config allows for storing arbitrary data.
+We utalize this to store metadata meaningful to Gorillanest within the repos themselves.
+
+The extensions are:
+    - remote [url]:
+        * sync           [true|false]
+        * sync-direction [push|pull]
+        * sync-interval  [n-seconds]
+        * sync-on-commit [true|false]
+    - permissions
+        * hidden [true|false]
+        * write  [user-list]
