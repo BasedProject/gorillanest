@@ -7,19 +7,13 @@ Commands:
     git-receive-pack
     new-repo [--migrate URL] [--pull-mirror]
     git config remote.$1.$2 $3
-        /* NOTE: 
-         *   git actually allows adding arbitrary bullshit,
-         *   therefor the maximum number of remotes must be limited
-         *   and the fields must be on a whitelist;
-         *   a special field should be added called sync,
-         *   which determines mirror frequency
-         */
 """
 import asyncio
 import os
 import asyncssh
 import subprocess
 import logging
+import shlex
 from sys import exit
 
 logging.basicConfig(level=logging.INFO)
@@ -32,7 +26,7 @@ LISTEN_PORT = 2222
 def validate_password(username, password):
     return username == "anon" and password == "passwd"
 
-# Implementing AsyncSSH functionality is done though primarily polymorphism.
+# Implementing AsyncSSH functionality is done primarily though polymorphism.
 #  This is the class it expects.
 #  Complete function definitions are moved out so that
 #   this class doesn't dominate the script,
@@ -45,7 +39,7 @@ class GNServer(asyncssh.SSHServer):
         return validate_password(username, password)
 # ---
 
-def ensure_host_key(path: str):
+def ensure_host_key(path: str) -> str:
     if os.path.exists(path): return path
 
     log.info("Generating ephemeral host key (saved to %s)", path)
@@ -55,31 +49,46 @@ def ensure_host_key(path: str):
 
     return path
 
+def validate_client_process(cmd : str) -> [str]:
+    COMMAND_WHITELIST = [
+        'git-upload-pack',
+        'git-recieve-pack',
+        'new-repo',
+        'git-config',
+    ]
+
+    argv = shlex.split(cmd)
+
+    if argv[0] not in COMMAND_WHITELIST:
+        raise ValueError(f"Illegal command ('{argv[0]}') requested.")
+
+    return argv
+
 async def gn_process(proc : asyncssh.SSHServerProcess):
     cmd = proc.command
 
-    async def pump(reader, writer):
+    async def pump(reader, writer, label):
         while True:
             data = await reader.read(4096)
             if not data: break
+            data_str = data
             if isinstance(data, bytes):
-                # do this or we get "utf_8_encode() argument 1 must be str, not bytes"
-                data = data.decode('utf-8')
-            log.info(data)
+                data_str = data.decode('utf-8')
+            log.info('\033[32m' + label + ' ' + data_str + '\033[0m')
             writer.write(data)
             await writer.drain()
 
     sub = await asyncio.create_subprocess_exec(
-        '/bin/sh', '-c', cmd, # XXX
+        *validate_client_process(cmd),
         stdin=asyncio.subprocess.PIPE,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
 
     await asyncio.gather(
-        pump(proc.stdin, sub.stdin),
-        pump(sub.stdout, proc.stdout),
-        pump(sub.stderr, proc.stderr)
+        pump(proc.stdin, sub.stdin, " >> "),
+        pump(sub.stdout, proc.stdout, " << "),
+        pump(sub.stderr, proc.stderr, " << ")
     )
 
     rc = await sub.wait()
@@ -94,6 +103,7 @@ async def start_server():
         LISTEN_PORT,
         server_host_keys=[host_key_path],
         process_factory=gn_process,
+        encoding=None
     )
 
     await asyncio.Future()
