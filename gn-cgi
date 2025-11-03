@@ -143,7 +143,7 @@ sub cgi {
 	my $method = $ENV{'REQUEST_METHOD'} || '';
 	my $uri    = $ENV{'REQUEST_URI'} || '/';
 
-    print $cgi->header;
+    print $cgi->header(%header);
     return if $method eq 'HEAD';
 
 	for my $pattern (keys %$routes) {
