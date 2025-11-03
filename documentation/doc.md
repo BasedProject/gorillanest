@@ -31,6 +31,7 @@
 | /~{user}/{repo}   | Repository index |
 | /explore          | Project listing |
 | /login            | Redirection to authenticator service |
+| /api              | REST API relaying commands as SSH to gn-daemon |
 
 ## Configuration
 XXX Use an ini file.
