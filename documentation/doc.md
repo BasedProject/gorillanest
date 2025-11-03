@@ -51,10 +51,8 @@ Registered users can perform various remote commands over SSH or HTTP.
 As mentioned registered users can perform various repository tasks by commanding Gorillanest daemons.
 
 Alternatively, the git root can be written by hand, similar to cgit.
-Git repositories inserted directly into the git root will show up
-under the reserved pseudo-user `anonymous`.
-Prepending a parent directory will similarly show up as an unregistered-user.
-Inserting a git repository into a registered user's home will similarly work.
+Every project has to be reside in a directory which's name will correspond to a user.
+The directory does not have to belong to a registered user.
 
 ## Git config extensions
 Git config allows for storing arbitrary data.
