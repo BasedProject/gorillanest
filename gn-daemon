@@ -6,7 +6,7 @@ Commands:
     git-upload-pack
     git-receive-pack
     new-repo [--migrate URL] [--pull-mirror]
-    git config remote.$1.$2 $3
+    git-config remote.$1.$2 $3
 """
 import asyncio
 import os

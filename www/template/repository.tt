@@ -3,18 +3,25 @@
 [% INCLUDE head.tt %]
 <body>
   <h1>[% title %]</h1>
+
   <p>Branches:</p>
   <ul>
-    [% FOREACH k IN h_repository.branches.keys %]
-      <li>[% k %]</li>
+    [% FOREACH k IN h_repository.branches %]
+      <li>[% k.name %]</li>
     [% END %]
   </ul>
+
   <p>Files:</p>
   <ul>
     [% FOR i IN h_repository.files %]
       <li>[% i %]</li>
     [% END %]
   </ul>
+
+  <h3>README</h3>
+  <div class=readme>
+    [% readme %]
+  </div>
 </body>
 [% INCLUDE footer.tt %]
 </html>

@@ -18,27 +18,22 @@ use Template;
 use URI::Escape;
 use Data::Dumper;
 use Git::Repository;
+use File::Spec;
 
 $ENV{PATH} = 'cgi_PATH/';
-require 'perl-modules/git-construct.pl';
+require 'perl-modules/git.pl';
+require 'perl-modules/config-frontend.pl';
 
-use lib qw(. ..);
-BEGIN {
-    # ignores redefinition... and everything else
-    open my $stderr, '>&', \*STDERR;
-    open STDERR, '>', '/dev/null';
-    require 'config.default.pl';
-    require 'config.pl' if -f 'config.pl';
-    open STDERR, '>&', $stderr;
-}
+our $GLOBAL_CONFIG;
 
 sub info {
     warn join(' ', @_);
 }
 
 sub serve_template {
-    my $template = Template->new({INCLUDE_PATH => 'template'});
     my ($template_name, $data) = @_;
+
+    my $template = Template->new({INCLUDE_PATH => $GLOBAL_CONFIG->{TEMPLATE_ROOT}});
 
     $template->process($template_name, $data)
         or info("Template: " . $template->error());
@@ -59,23 +54,63 @@ sub path_to_list_of_directories {
     return \@directories;
 }
 
+sub collect_all_repositories {
+    my $r = [];
+
+    my $directories = path_to_list_of_directories($GLOBAL_CONFIG->{GIT_ROOT});
+    for my $d (@$directories) {
+        my $subdirectorries = path_to_list_of_directories("$GLOBAL_CONFIG->{GIT_ROOT}/$d");
+        for my $sd (@$subdirectorries) {
+            push @$r, "$d/$sd";
+        }
+    }
+
+    return $r;
+}
+
+sub repository_to_link {
+    my ($repo) = @_;
+    my $r = $repo;
+
+    $r =~ s/\.git$//;
+    $r = "/~$r";
+
+    return $r;
+}
+
+sub repository_to_name {
+    my ($repo) = @_;
+    my $r = $repo;
+
+    $r =~ s/\.git$//;
+
+    return $r;
+}
+
 # --- Page handlers
 sub serve_index { # /
     my ($uri) = @_;
     my %data;
 
-    my @directories = map { my $i = $_; map { join('/', $i, $_) } @{directories(join('/', $uri, $i))} } @{directories($uri)};
-    $data{directories} = \@directories;
-    if ($data{directories}) { $data{found} = 1; }
-
     serve_template("index.tt", \%data);
+}
+
+sub serve_explore { # /
+    my ($uri) = @_;
+    my %data;
+
+    $data{repositories} = collect_all_repositories();
+    $data{to_link}      = \&repository_to_link;
+    $data{to_name}      = \&repository_to_name;
+
+    serve_template("explore.tt", \%data);
 }
 
 sub serve_user { # /$username/
     my ($uri, $username) = @_;
 
     my %data;
-    my @directories = @{path_to_list_of_directories(join('/', GIT_ROOT, $username))};
+    my @directories = @{path_to_list_of_directories(join('/', $GLOBAL_CONFIG->{GIT_ROOT}, $username))};
     # XXX mangle raw directories to valid repository links
     $data{directories} = \@directories;
     $data{username}    = $username;
@@ -90,7 +125,8 @@ sub serve_repository { # /$username/$repository
     my %data;
     $data{username}     = $username;
     $data{repository}   = $repository;
-    $data{h_repository} = new_repository('/home/anon/Swap/gorillanest/');
+    $data{h_repository} = new_repository("$GLOBAL_CONFIG->{GIT_ROOT}/$username/$repository.git");
+    $data{readme}       = new_readme($data{h_repository});
 
     serve_template("repository.tt", \%data);
 }
@@ -128,11 +164,14 @@ sub init() {
 
     my %routes = (
         '/'                   => sub { serve_index(@_)      },
+        '/explore'            => sub { serve_explore(@_)    },
         '/~([\w.]+)'          => sub { serve_user(@_)       },
         '/~([\w.]+)/([\w.]+)' => sub { serve_repository(@_) },
     );
     # Regexes are slow, so we precompile them once
     my %routes_cache = map { $_ => qr{^$_$} } keys %routes;
+
+    ConfigFrontend::read_config();
 
     return \%data, \%routes, \%routes_cache;
 }

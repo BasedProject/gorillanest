@@ -4,12 +4,14 @@
 [% INCLUDE head.tt %]
 <body>
 [% INCLUDE header.tt %]
-<div>
-    <center>
-        <h1>[% title %]</h1>
-        <h2>[% description %]</h2>
-    </center>
-</div>
+    <div>
+        Content:
+        <ul>
+            [% FOR i IN repositories %]
+            <li><a href=[% to_link(i) %]>[% to_name(i) %]</a></li>
+            [% END %]
+        </ul>
+    </div>
 [% INCLUDE footer.tt %]
 </body>
 </html>
