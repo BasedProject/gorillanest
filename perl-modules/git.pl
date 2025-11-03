@@ -2,9 +2,11 @@
 
 use strict;
 use warnings;
+use feature 'signatures'; # XXX
 use Git::Repository;
 use Cwd 'realpath';
 use File::Basename;
+use IPC::Open2;
 
 use Data::Dumper;
 
@@ -55,7 +57,55 @@ sub new_repository {
         owner    => $owner,
         branches => \@branches,
         files    => \@files,
+        h_repo   => $repo,
     };
+}
+
+sub git_cat ($h_repository, $path) {
+    my $content = $h_repository->{h_repo}->run('show', "HEAD:$path");
+    return "" if $@;
+    return $content;
+}
+
+sub does_exist_in_repository {
+    my ($path, $h_repository) = @_;
+    my $files = $h_repository->{files};
+
+    return scalar grep { $_ eq $path } @$files;
+}
+
+sub new_readme {
+    my ($h_repository) = @_;
+
+    # Plain text
+    for my $f ('README', 'README.txt') {
+        if (does_exist_in_repository($f, $h_repository)) {
+            my $text = read_git_file($h_repository->{path}, 'HEAD', $f);
+            $text =~ s/</&lt;/g;
+            $text =~ s/>/&gt;/g;
+            return "<pre>$text</pre>";
+        }
+    }
+
+    # Markdown
+    if (does_exist_in_repository("README.md", $h_repository)) {
+        my $text = git_cat($h_repository, 'README.md');
+        my ($in, $out);
+        my $pid = open2($out, $in, 'ts-md2html', '/dev/stdin')
+            or die "failed to run ts-md2html: $!";
+
+        print $in $text;
+        close $in;
+
+        local $/;
+        my $html = <$out>;
+        close $out;
+
+        waitpid($pid, 0);
+        return $html;
+    }
+
+    return "";
 }
 
 print Dumper( new_repository('./') ) unless caller;
