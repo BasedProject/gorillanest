@@ -4,8 +4,8 @@
 <body>
     <h1>[% title %]</h1>
     <ul>
-        [% FOR i IN directories %]
-        <li><a href="/[% username %]/[% i %]">/[% username %]/[% i %]</a></li>
+        [% FOR i IN repositories %]
+        <li><a href="[% to_link(i) %]">[% i %]</a></li>
         [% END %]
     </ul>
     [% INCLUDE footer.tt %]

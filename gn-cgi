@@ -5,9 +5,8 @@ use warnings;
 use feature 'signatures';
 use Symbol 'gensym';
 use Template;
-use URI::Escape;
 use Data::Dumper;
-use Git::Repository;
+use URI::Escape;
 use File::Spec;
 use Text::ParseWords qw(shellwords);
 use Sub::Util 'subname';
@@ -18,16 +17,19 @@ BEGIN {
 
 # XXX i dont like how $cgi is passed around like a cheapwhore
 
+# NOTE: the `git` executable must be available
+#        when Git::Repository is loaded
 $ENV{PATH} = 'PATH/cgi/';
 
+require 'perl-modules/path.pl';
 require 'perl-modules/git.pl';
 require 'perl-modules/config-frontend.pl';
 
 our $GLOBAL_CONFIG;
 
 sub serve_template ($cgi, $template_name, $data, $code = 200) {
-
     my $body;
+
     my $template = Template->new({
         INCLUDE_PATH => $GLOBAL_CONFIG->{TEMPLATE_ROOT}
     });
@@ -38,64 +40,33 @@ sub serve_template ($cgi, $template_name, $data, $code = 200) {
     $cgi->set_response_status($code)->render(html => $body);
 }
 
-sub path_to_list_of_directories ($path) {# XXX move
-    opendir my $dir, $path or die "$path: $!";
-    my @directories;
-    my %drop = ( # significant dirs only
-        '.'  => 0,
-        '..' => 0,
-    );
-    foreach (readdir $dir) {
-        push(@directories, $_) if (-d join('/', $path, $_) && ($drop{$_} // 1));
-    }
-    closedir $dir;
-    return \@directories;
-}
-
-# Collect list of repo directories given:
-#   $path/
-#     - anon/
-#        - dictate/
-#     - emil/
-#        - mortal_game/
-# -> [ 'anon/dictate', 'emil/mortal_game' ]
-sub collect_all_repositories {
-    my $r = [];
-
-    my $directories = path_to_list_of_directories($GLOBAL_CONFIG->{GIT_ROOT});
-    for my $d (@$directories) {
-        my $subdirectorries = path_to_list_of_directories("$GLOBAL_CONFIG->{GIT_ROOT}/$d");
-        for my $sd (@$subdirectorries) {
-            push @$r, "$d/$sd";
-        }
-    }
-
-    return $r;
-}
-
 # --- Page handlers
 sub serve_index ($cgi) { # /
-    my %data;
-
-    serve_template($cgi, "index.tt", \%data);
+    serve_template($cgi, "index.tt", {});
 }
 
 sub serve_explore ($cgi) { # /explore
     my %data;
 
-    $data{repositories} = collect_all_repositories();
     $data{to_link}      = \&repository_to_link;
     $data{to_name}      = \&repository_to_name;
+    $data{repositories} = [
+        map { s/^$GLOBAL_CONFIG->{GIT_ROOT}\///r }
+        @{ directories_at_level($GLOBAL_CONFIG->{GIT_ROOT}, 2) }
+    ];
 
     serve_template($cgi, "explore.tt", \%data);
 }
 
 sub serve_user ($cgi, $username) { # /$username/
     my %data;
-    my @directories = @{path_to_list_of_directories(join('/', $GLOBAL_CONFIG->{GIT_ROOT}, $username))};
-    $data{directories} = \@directories;
-    $data{username}    = $username;
-    if ($data{directories}) { $data{found} = 1; }
+
+    $data{username}     = $username;
+    $data{to_link}      = \&repository_to_link;
+    $data{repositories} = [
+        map { s/^$GLOBAL_CONFIG->{GIT_ROOT}\///r }
+        @{ directories_at_level("$GLOBAL_CONFIG->{GIT_ROOT}/$username", 1) }
+    ];
 
     serve_template($cgi, "index_user.tt", \%data);
 }
@@ -196,7 +167,7 @@ sub respect_https_config_requirement ($cgi) {
 }
 
 sub handle_cgi ($cgi, $routes, $routes_cache) {
-    respect_https_config_requirement();
+    respect_https_config_requirement($cgi);
 
     my $uri = $ENV{'REQUEST_URI'} || '/';
 

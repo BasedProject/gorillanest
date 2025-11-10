@@ -2,13 +2,13 @@
 
 use strict;
 use warnings;
-use feature 'signatures'; # XXX
-use Git::Repository;
+use feature 'signatures';
+use IPC::Open2;
+use Data::Dumper;
 use Cwd 'realpath';
 use File::Basename;
-use IPC::Open2;
-
-use Data::Dumper;
+use Path::Tiny;
+use Git::Repository;
 
 sub new_repository {
     my ($path) = @_;

@@ -3,7 +3,7 @@
 ## Tech stack
 * Perl for webdev
 * Python for SSH daemon
-* SQLite and files for storage
+* files and SQLite for storage
 
 ## Project structure
 | Path                 | Description |
@@ -18,6 +18,7 @@
 | Makefile             | Anon's autism for starting webserver |
 | gn-cgi               | Web service script |
 | gn-fcgi              | Fast cgi wrapper for gn-cli |
+| gn-daemon            | Custom SSH daemon handling various repo and site management requests |
 
 > [!NOTE]
 > Executables are allways stored top level.
@@ -28,7 +29,7 @@
 | /                   | Index |
 | /~{user}            | User index |
 | /~{user}/{repo}     | Repository index |
-| /~{user}/{repo}.git | Git over HTTP endpoint for repository |
+| /~{user}/{repo}.git | HTTP git clone endpoint |
 | /explore            | Project listing |
 | /login              | Redirection to authenticator service |
 | /api                | REST API relaying commands as SSH to gn-daemon |
