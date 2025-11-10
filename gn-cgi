@@ -4,13 +4,12 @@ use strict;
 use warnings;
 use feature 'signatures';
 use Symbol 'gensym';
-use Template;
 use Data::Dumper;
-use URI::Escape;
 use Text::ParseWords qw(shellwords);
 use Sub::Util 'subname';
 use IPC::Open3;
 use Net::OpenSSH;
+use Template;
 BEGIN {
     # CGI::Tiny wants to Ada us into using it once per process,
     #  however we are C people.
