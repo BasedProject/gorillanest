@@ -13,13 +13,18 @@ use Sub::Util 'subname';
 use IPC::Open3;
 use Net::OpenSSH;
 BEGIN {
+    # CGI::Tiny wants to Ada us into using it once per process,
+    #  however we are C people.
+    # The documentation mentions that the `cgi {}` blocks implementation
+    #  might change, but realistically it never will and I dont care,
+    #  therefor we hack around the package to make it compatible with FCGI.
     require CGI::Tiny;
 }
 
 our $cgi;
 
-# NOTE: the `git` executable must be available
-#        when Git::Repository is loaded
+# The `git` executable must be available
+#  when Git::Repository is loaded
 $ENV{PATH} = 'PATH/cgi/';
 
 require 'perl-modules/path.pl';
