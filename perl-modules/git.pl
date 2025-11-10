@@ -102,10 +102,28 @@ sub new_readme {
         close $out;
 
         waitpid($pid, 0);
+
         return $html;
     }
 
     return "";
+}
+
+sub repository_to_link ($repo) {
+    my $r = $repo;
+
+    $r =~ s/\.git$//;
+    $r = "/~$r";
+
+    return $r;
+}
+
+sub repository_to_name ($repo) {
+    my $r = $repo;
+
+    $r =~ s/\.git$//;
+
+    return $r;
 }
 
 print Dumper( new_repository('./') ) unless caller;

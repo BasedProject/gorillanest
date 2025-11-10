@@ -1,0 +1,37 @@
+<html>
+[% title = "API INTERFACE" %]
+[% INCLUDE head.tt %]
+<body>
+[% INCLUDE header.tt %]
+<div>
+    <center>
+        <h1>[% title %]</h1>
+
+        <p>This is a placeholder for the help message.</p>
+
+        <form method="post" action="">
+            <table>
+                <tr>
+                    <td><label for="user">User:</label></td>
+                    <td><input type="text" id="user" name="user" required></td>
+                </tr>
+                <tr>
+                    <td><label for="pass">Password:</label></td>
+                    <td><input type="password" id="pass" name="pass" required></td>
+                </tr>
+                <tr>
+                    <td><label for="argv">Command:</label></td>
+                    <td><input type="text" id="argv" name="argv" required></td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="text-align:center;">
+                        <input type="submit" value="Send Request">
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </center>
+</div>
+[% INCLUDE footer.tt %]
+</body>
+</html>

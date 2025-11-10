@@ -2,11 +2,11 @@
 """
 gn-daemon: Gorillanest daemon accepting commands over SSH
 
-Commands:
-    git-upload-pack
-    git-receive-pack
-    new-repo [--migrate URL] [--pull-mirror]
-    git-config remote.$1.$2 $3
+# XXX: you either do whitelisting or PATH mangling.
+#       both do not make sense.
+#       however we need some kind of mechanism to find system executables.
+#       it sounds niggericous to have wrappers that simply look up the exe.
+#       maybe some kind of caching?
 """
 import asyncio
 import os
@@ -24,6 +24,7 @@ LISTEN_ADDR = "0.0.0.0"
 LISTEN_PORT = 2222
 
 def validate_password(username, password):
+    log.info("auth %s : %s", username, password)
     return username == "anon" and password == "passwd"
 
 # Implementing AsyncSSH functionality is done primarily though polymorphism.
@@ -50,17 +51,14 @@ def ensure_host_key(path: str) -> str:
     return path
 
 def validate_client_process(cmd : str) -> [str]:
-    COMMAND_WHITELIST = [
-        'git-upload-pack',
-        'git-recieve-pack',
-        'new-repo',
-        'git-config',
-    ]
-
     argv = shlex.split(cmd)
 
-    if argv[0] not in COMMAND_WHITELIST:
-        raise ValueError(f"Illegal command ('{argv[0]}') requested.")
+    # XXX only allow word chars and -
+    #if argv[0] not in COMMAND_WHITELIST:
+    #    raise ValueError(f"Illegal command ('{argv[0]}') requested.")
+
+    # XXX
+    argv[0] = "PATH/daemon/" + argv[0]
 
     return argv
 

@@ -18,6 +18,8 @@
     [% END %]
   </ul>
 
+  <p>Clone: [% clone %]</p>
+
   <h3>README</h3>
   <div class=readme>
     [% readme %]

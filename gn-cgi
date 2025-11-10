@@ -1,46 +1,44 @@
 #!/usr/bin/env perl
 
-# XXX
-# why are we passing around root like a cheap whore?                            because root is where things are (f(x) -> y)        have you considered suicide?
-# looking into it, i think we should have a global config object using
-# https://metacpan.org/pod/Readonly                                             fuck read only, constants are for faggots           says the nigger who has a "globals are evil phase".
-#                                                                                                                                   choose one retard
-# i modified the routing heavily, this is how people do it;                     very scary
-# pretty clean
-# you must also realize that not all routes are necessarily templates,          then they are routed by nginx.                      no you gorilla nigger because of coupling.
-# it could be a redirect for example, so the original solution would                                                                you want your server to do a bare minimum
-# complicate beyond comprehension                                               ACK.
-
 use strict;
 use warnings;
-use CGI;
+use feature 'signatures';
+use Symbol 'gensym';
 use Template;
 use URI::Escape;
 use Data::Dumper;
 use Git::Repository;
 use File::Spec;
+use Text::ParseWords qw(shellwords);
+use Sub::Util 'subname';
+use IPC::Open3;
+BEGIN {
+    require CGI::Tiny;
+}
 
-$ENV{PATH} = 'cgi_PATH/';
+# XXX i dont like how $cgi is passed around like a cheapwhore
+
+$ENV{PATH} = 'PATH/cgi/';
+
 require 'perl-modules/git.pl';
 require 'perl-modules/config-frontend.pl';
 
 our $GLOBAL_CONFIG;
 
-sub info {
-    warn join(' ', @_);
+sub serve_template ($cgi, $template_name, $data, $code = 200) {
+
+    my $body;
+    my $template = Template->new({
+        INCLUDE_PATH => $GLOBAL_CONFIG->{TEMPLATE_ROOT}
+    });
+
+    $template->process($template_name, $data, \$body)
+        or die "Template: " . $template->error();
+
+    $cgi->set_response_status($code)->render(html => $body);
 }
 
-sub serve_template {
-    my ($template_name, $data) = @_;
-
-    my $template = Template->new({INCLUDE_PATH => $GLOBAL_CONFIG->{TEMPLATE_ROOT}});
-
-    $template->process($template_name, $data)
-        or info("Template: " . $template->error());
-}
-
-sub path_to_list_of_directories {
-    my $path = $_[0];
+sub path_to_list_of_directories ($path) {# XXX move
     opendir my $dir, $path or die "$path: $!";
     my @directories;
     my %drop = ( # significant dirs only
@@ -48,12 +46,19 @@ sub path_to_list_of_directories {
         '..' => 0,
     );
     foreach (readdir $dir) {
-        push(@directories, $_) if (-d join('/', $_[0], $_) && ($drop{$_} // 1));
+        push(@directories, $_) if (-d join('/', $path, $_) && ($drop{$_} // 1));
     }
     closedir $dir;
     return \@directories;
 }
 
+# Collect list of repo directories given:
+#   $path/
+#     - anon/
+#        - dictate/
+#     - emil/
+#        - mortal_game/
+# -> [ 'anon/dictate', 'emil/mortal_game' ]
 sub collect_all_repositories {
     my $r = [];
 
@@ -68,117 +73,171 @@ sub collect_all_repositories {
     return $r;
 }
 
-sub repository_to_link {
-    my ($repo) = @_;
-    my $r = $repo;
-
-    $r =~ s/\.git$//;
-    $r = "/~$r";
-
-    return $r;
-}
-
-sub repository_to_name {
-    my ($repo) = @_;
-    my $r = $repo;
-
-    $r =~ s/\.git$//;
-
-    return $r;
-}
-
 # --- Page handlers
-sub serve_index { # /
-    my ($uri) = @_;
+sub serve_index ($cgi) { # /
     my %data;
 
-    serve_template("index.tt", \%data);
+    serve_template($cgi, "index.tt", \%data);
 }
 
-sub serve_explore { # /
-    my ($uri) = @_;
+sub serve_explore ($cgi) { # /explore
     my %data;
 
     $data{repositories} = collect_all_repositories();
     $data{to_link}      = \&repository_to_link;
     $data{to_name}      = \&repository_to_name;
 
-    serve_template("explore.tt", \%data);
+    serve_template($cgi, "explore.tt", \%data);
 }
 
-sub serve_user { # /$username/
-    my ($uri, $username) = @_;
-
+sub serve_user ($cgi, $username) { # /$username/
     my %data;
     my @directories = @{path_to_list_of_directories(join('/', $GLOBAL_CONFIG->{GIT_ROOT}, $username))};
-    # XXX mangle raw directories to valid repository links
     $data{directories} = \@directories;
     $data{username}    = $username;
     if ($data{directories}) { $data{found} = 1; }
 
-    serve_template("index_user.tt", \%data);
+    serve_template($cgi, "index_user.tt", \%data);
 }
 
-sub serve_repository { # /$username/$repository
-    my ($uri, $username, $repository) = @_;
-
+sub serve_repository ($cgi, $username, $repository) { # /$username/$repository
     my %data;
+
+    my $host = $cgi->server_name;
+
     $data{username}     = $username;
     $data{repository}   = $repository;
     $data{h_repository} = new_repository("$GLOBAL_CONFIG->{GIT_ROOT}/$username/$repository.git");
     $data{readme}       = new_readme($data{h_repository});
+    $data{clone}        = "$host/~$username/$repository.git";
 
-    serve_template("repository.tt", \%data);
+    serve_template($cgi, "repository.tt", \%data);
+}
+
+sub serve_api ($cgi) {
+    my $method = $cgi->request_method;
+
+    if ($method eq 'GET') {
+        return serve_template($cgi, "api.tt", {});
+    }
+
+    if ($method ne 'POST') {
+        $cgi->set_response_status(405)->render(
+            text => "Method Not Allowed\nOnly GET and POST supported..",
+        );
+        return;
+    }
+
+    my $user = $cgi->param('user') // '';
+    my $pass = $cgi->param('pass') // '';
+    my $argv = $cgi->param('argv') // '';
+
+    unless ($user && $pass) {
+        $cgi->set_response_status(400)->render(
+            text => "Bad Request\nMissing user or pass parameter.",
+        );
+        return;
+    }
+
+    my @argv_list = shellwords($argv);
+
+    print STDERR "-- @argv_list --";
+
+    # XXX YOU PLACED SSH INTO PATH EVERYTHING IS FUCKED TOTAL DEATH IMINENT
+    my @cmd = (
+        'sshpass', '-p', $pass,
+        'ssh',
+        '-o', 'StrictHostKeyChecking=no',
+        '-n',
+        "$user\@localhost",
+        '-p', '2222',
+        @argv_list
+    );
+
+    my $output = qx(@cmd); # XXX vuln
+
+    $cgi->render(json => {
+        'exit-code' => 1,
+        stdout => $output,
+        stderr => '', # XXX
+    });
+}
+
+sub serve_git_http_backend ($cgi, $user, $repo, $tail, $param) {
+    # git-http-backend requires the following env vars to function
+    #  PATH_INFO and QUERY_STRING are supposedly setup by the webserver,
+    #   but lighttpd will refuse to set them if you use the *wrong* kind of
+    #   redirection.
+    #  It is safe to assume other servers have similar quirks,
+    #   therefor we set them explicitly.
+    $ENV{GIT_HTTP_EXPORT_ALL} = '1';                          # allow read
+    $ENV{GIT_PROJECT_ROOT}    = "$GLOBAL_CONFIG->{GIT_ROOT}"; # root dir of servable repos
+    $ENV{PATH_INFO}           = "/$user/$repo.git$tail";      # rel path  to GIT_PROJECT_ROOT + git magick path
+    $ENV{QUERY_STRING}        = "$param";                     # e.g. 'service=git-upload-pack'
+
+    # Git debug flags
+    #$ENV{GIT_TRACE}        = "2";
+    #$ENV{GIT_CURL_VERBOSE} = "1";
+
+    $ENV{PATH} = "$ENV{PATH}:/home/anon/Swap/git/"; # XXX
+
+    # XXX auth check
+
+    exec "/home/anon/Swap/git/git-http-backend"; # XXX exec is a problem for fcgi
 }
 
 # ---
 
-sub cgi {
-    my ($data, $routes, $routes_cache) = @_;
-	my $cgi = CGI->new;
-	my %header = (
-		-Content_Type => 'text/html',
-		-charset      => 'UTF-8',
-	);
-	my $method = $ENV{'REQUEST_METHOD'} || '';
-	my $uri    = $ENV{'REQUEST_URI'} || '/';
+sub respect_https_config_requirement ($cgi) {
+    if ((!$ENV{'HTTPS'} || $ENV{'HTTPS'} ne 'on') && $GLOBAL_CONFIG->{HTTPS}) {
+        $cgi->set_response_status(426)->render(text => 'HTTPS required.');
+        exit; # XXX fcgi problem
+    }
+}
 
-    print $cgi->header(%header);
-    return if $method eq 'HEAD';
+sub handle_cgi ($cgi, $routes, $routes_cache) {
+    respect_https_config_requirement();
+
+    my $uri = $ENV{'REQUEST_URI'} || '/';
 
 	for my $pattern (keys %$routes) {
-		if ($uri =~ $routes_cache->{$pattern}) {
+		if (my @caps = $uri =~ $routes_cache->{$pattern}) {
 			my $handler = $routes->{$pattern};
-			$handler->($uri, $1, $2, $3);
+            my @caps = ($#- > 0) ? ($uri =~ /$pattern/) : ();
+
+            print STDERR ">> '$uri' -> " . subname($handler) . "(\$cgi @caps)\n";
+			$handler->($cgi, @caps);
+
             return;
 		}
 	}
 
-	serve_template("404.tt", {}); # XXX missing code
+	serve_template($cgi, "404.tt", {}, 404);
 }
 
-sub init() {
-    my %data = (
-        found => 0,
-    );
-
+sub init () {
     my %routes = (
-        '/'                   => sub { serve_index(@_)      },
-        '/explore'            => sub { serve_explore(@_)    },
-        '/~([\w.]+)'          => sub { serve_user(@_)       },
-        '/~([\w.]+)/([\w.]+)' => sub { serve_repository(@_) },
+        '/'                                        => \&serve_index,
+        '/explore'                                 => \&serve_explore,
+        '/api'                                     => \&serve_api,
+        '/~([\w]+)'                                => \&serve_user,
+        '/~([\w]+)/([\w]+)'                        => \&serve_repository,
+        '/~([\w]+)/([\w]+)\.git([^?]*)(?:\?(.*))?' => \&serve_git_http_backend,
     );
     # Regexes are slow, so we precompile them once
     my %routes_cache = map { $_ => qr{^$_$} } keys %routes;
 
     ConfigFrontend::read_config();
 
-    return \%data, \%routes, \%routes_cache;
+    return \%routes, \%routes_cache;
 }
 
-sub main() {
-    my ($data, $routes, $routes_cache) = init();
-    cgi($data, $routes, $routes_cache);
+sub main () {
+    my ($routes, $routes_cache) = init();
+    &CGI::Tiny::cgi(sub {
+        my $cgi = $_;
+        handle_cgi($cgi, $routes, $routes_cache);
+    });
 }
 
 main() unless caller;
