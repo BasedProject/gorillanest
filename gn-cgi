@@ -16,7 +16,7 @@ BEGIN {
     require CGI::Tiny;
 }
 
-# XXX i dont like how $cgi is passed around like a cheapwhore
+our $cgi;
 
 # NOTE: the `git` executable must be available
 #        when Git::Repository is loaded
@@ -28,7 +28,7 @@ require 'perl-modules/config-frontend.pl';
 
 our $GLOBAL_CONFIG;
 
-sub serve_template ($cgi, $template_name, $data, $code = 200) {
+sub serve_template ($template_name, $data, $code = 200) {
     my $body;
 
     my $template = Template->new({
@@ -42,11 +42,11 @@ sub serve_template ($cgi, $template_name, $data, $code = 200) {
 }
 
 # --- Page handlers
-sub serve_index ($cgi) { # /
-    serve_template($cgi, "index.tt", {});
+sub serve_index () { # /
+    serve_template("index.tt", {});
 }
 
-sub serve_explore ($cgi) { # /explore
+sub serve_explore () { # /explore
     my %data;
 
     $data{to_link}      = \&repository_to_link;
@@ -56,10 +56,10 @@ sub serve_explore ($cgi) { # /explore
         @{ directories_at_level($GLOBAL_CONFIG->{GIT_ROOT}, 2) }
     ];
 
-    serve_template($cgi, "explore.tt", \%data);
+    serve_template("explore.tt", \%data);
 }
 
-sub serve_user ($cgi, $username) { # /$username/
+sub serve_user ($username) { # /$username/
     my %data;
 
     $data{username}     = $username;
@@ -69,10 +69,10 @@ sub serve_user ($cgi, $username) { # /$username/
         @{ directories_at_level("$GLOBAL_CONFIG->{GIT_ROOT}/$username", 1) }
     ];
 
-    serve_template($cgi, "index_user.tt", \%data);
+    serve_template("index_user.tt", \%data);
 }
 
-sub serve_repository ($cgi, $username, $repository) { # /$username/$repository
+sub serve_repository ($username, $repository) { # /$username/$repository
     my %data;
 
     my $host = $cgi->server_name;
@@ -83,14 +83,14 @@ sub serve_repository ($cgi, $username, $repository) { # /$username/$repository
     $data{readme}       = new_readme($data{h_repository});
     $data{clone}        = "$host/~$username/$repository.git";
 
-    serve_template($cgi, "repository.tt", \%data);
+    serve_template("repository.tt", \%data);
 }
 
-sub serve_api ($cgi) {
+sub serve_api () {
     my $method = $cgi->request_method;
 
     if ($method eq 'GET') {
-        return serve_template($cgi, "api.tt", {});
+        return serve_template("api.tt", {});
     }
 
     if ($method ne 'POST') {
@@ -147,7 +147,7 @@ sub serve_api ($cgi) {
     });
 }
 
-sub serve_git_http_backend ($cgi, $user, $repo, $tail, $param) {
+sub serve_git_http_backend ($user, $repo, $tail, $param) {
     # git-http-backend requires the following env vars to function
     #  PATH_INFO and QUERY_STRING are supposedly setup by the webserver,
     #   but lighttpd will refuse to set them if you use the *wrong* kind of
@@ -172,15 +172,15 @@ sub serve_git_http_backend ($cgi, $user, $repo, $tail, $param) {
 
 # ---
 
-sub respect_https_config_requirement ($cgi) {
+sub respect_https_config_requirement {
     if ((!$ENV{'HTTPS'} || $ENV{'HTTPS'} ne 'on') && $GLOBAL_CONFIG->{HTTPS}) {
         $cgi->set_response_status(426)->render(text => 'HTTPS required.');
         exit; # XXX fcgi problem
     }
 }
 
-sub handle_cgi ($cgi, $routes, $routes_cache) {
-    respect_https_config_requirement($cgi);
+sub handle_cgi ($routes, $routes_cache) {
+    respect_https_config_requirement();
 
     my $uri = $ENV{'REQUEST_URI'} || '/';
 
@@ -189,14 +189,14 @@ sub handle_cgi ($cgi, $routes, $routes_cache) {
 			my $handler = $routes->{$pattern};
             my @caps = ($#- > 0) ? ($uri =~ /$pattern/) : ();
 
-            print STDERR ">> '$uri' -> " . subname($handler) . "(\$cgi @caps)\n";
-			$handler->($cgi, @caps);
+            print STDERR ">> '$uri' -> " . subname($handler) . "(@caps)\n";
+			$handler->(@caps);
 
             return;
 		}
 	}
 
-	serve_template($cgi, "404.tt", {}, 404);
+	serve_template("404.tt", {}, 404);
 }
 
 sub init () {
@@ -219,8 +219,8 @@ sub init () {
 sub main () {
     my ($routes, $routes_cache) = init();
     &CGI::Tiny::cgi(sub {
-        my $cgi = $_;
-        handle_cgi($cgi, $routes, $routes_cache);
+        local $cgi = $_;
+        handle_cgi($routes, $routes_cache);
     });
 }
 
