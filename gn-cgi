@@ -188,20 +188,20 @@ sub handle_cgi ($routes, $routes_cache) {
 
     my $uri = $ENV{'REQUEST_URI'} || '/';
 
-	for my $pattern (keys %$routes) {
-		if (my @caps = $uri =~ $routes_cache->{$pattern}) {
-			my $handler = $routes->{$pattern};
+    for my $pattern (keys %$routes) {
+        if (my @caps = $uri =~ $routes_cache->{$pattern}) {
+            my $handler = $routes->{$pattern};
             my @caps = ($#- > 0) ? ($uri =~ /$pattern/) : ();
 
             print STDERR ">> '$uri' -> " . subname($handler) . "(@caps)\n";
-			$handler->(@caps);
+            $handler->(@caps);
 
             return;
-		}
-	}
+        }
+    }
 
     print STDERR ">> '$uri' -> 404\n";
-	serve_template("404.tt", {}, 404);
+    serve_template("404.tt", {}, 404);
 }
 
 sub init () {
