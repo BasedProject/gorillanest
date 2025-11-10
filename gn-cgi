@@ -7,7 +7,6 @@ use Symbol 'gensym';
 use Template;
 use Data::Dumper;
 use URI::Escape;
-use File::Spec;
 use Text::ParseWords qw(shellwords);
 use Sub::Util 'subname';
 use IPC::Open3;
@@ -177,7 +176,7 @@ sub serve_git_http_backend ($user, $repo, $tail, $param) {
 
 # ---
 
-sub respect_https_config_requirement {
+sub respect_https_config_requirement () {
     if ((!$ENV{'HTTPS'} || $ENV{'HTTPS'} ne 'on') && $GLOBAL_CONFIG->{HTTPS}) {
         $cgi->set_response_status(426)->render(text => 'HTTPS required.');
         exit; # XXX fcgi problem
@@ -201,19 +200,20 @@ sub handle_cgi ($routes, $routes_cache) {
 		}
 	}
 
+    print STDERR ">> '$uri' -> 404\n";
 	serve_template("404.tt", {}, 404);
 }
 
 sub init () {
+    # Regexes are slow, so we precompile them once
     my %routes = (
         '/'                                        => \&serve_index,
-        '/explore'                                 => \&serve_explore,
-        '/api'                                     => \&serve_api,
-        '/~([\w]+)'                                => \&serve_user,
-        '/~([\w]+)/([\w]+)'                        => \&serve_repository,
+        '/explore/?'                               => \&serve_explore,
+        '/api/?'                                   => \&serve_api,
+        '/~([\w]+)/?'                              => \&serve_user,
+        '/~([\w]+)/([\w]+)/?'                      => \&serve_repository,
         '/~([\w]+)/([\w]+)\.git([^?]*)(?:\?(.*))?' => \&serve_git_http_backend,
     );
-    # Regexes are slow, so we precompile them once
     my %routes_cache = map { $_ => qr{^$_$} } keys %routes;
 
     ConfigFrontend::read_config();
