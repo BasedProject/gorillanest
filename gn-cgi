@@ -11,6 +11,7 @@ use File::Spec;
 use Text::ParseWords qw(shellwords);
 use Sub::Util 'subname';
 use IPC::Open3;
+use Net::OpenSSH;
 BEGIN {
     require CGI::Tiny;
 }
@@ -99,38 +100,50 @@ sub serve_api ($cgi) {
         return;
     }
 
-    my $user = $cgi->param('user') // '';
-    my $pass = $cgi->param('pass') // '';
-    my $argv = $cgi->param('argv') // '';
+    my $user = $cgi->param('user');
+    my $pass = $cgi->param('pass');
+    my $argv = $cgi->param('argv');
 
-    unless ($user && $pass) {
+    unless ($user && $pass && $argv) {
         $cgi->set_response_status(400)->render(
-            text => "Bad Request\nMissing user or pass parameter.",
+            text => "Bad Request\nMissing parameter.",
         );
         return;
     }
 
+    my $exit_code = -1;
+    my $stdout    = '';
+    my $stderr    = '';
     my @argv_list = shellwords($argv);
 
-    print STDERR "-- @argv_list --";
-
-    # XXX YOU PLACED SSH INTO PATH EVERYTHING IS FUCKED TOTAL DEATH IMINENT
-    my @cmd = (
-        'sshpass', '-p', $pass,
-        'ssh',
-        '-o', 'StrictHostKeyChecking=no',
-        '-n',
-        "$user\@localhost",
-        '-p', '2222',
-        @argv_list
+    my $ssh = Net::OpenSSH->new(
+        "$user\@127.0.0.1",
+        port          => 2222,
+        ssh_cmd       => '/usr/bin/ssh',
+        password      => $pass,
+        master_opts   => ['-o', 'StrictHostKeyChecking=no'],
+        timeout       => 2,
     );
 
-    my $output = qx(@cmd); # XXX vuln
+    if ($ssh->error) {
+        $stdout = $ssh->error;
+        goto end;
+    }
 
+    ($stdout, $stderr) = $ssh->capture2(@argv_list);
+    $exit_code         = $? >> 8;
+
+    if ($ssh->error) {
+        $stdout = $ssh->error;
+        goto end;
+    }
+
+  end:
+    $ssh->disconnect;
     $cgi->render(json => {
-        'exit-code' => 1,
-        stdout => $output,
-        stderr => '', # XXX
+        'exit-code' => $exit_code,
+        stdout      => $stdout,
+        stderr      => $stderr,
     });
 }
 
@@ -146,7 +159,7 @@ sub serve_git_http_backend ($cgi, $user, $repo, $tail, $param) {
     $ENV{PATH_INFO}           = "/$user/$repo.git$tail";      # rel path  to GIT_PROJECT_ROOT + git magick path
     $ENV{QUERY_STRING}        = "$param";                     # e.g. 'service=git-upload-pack'
 
-    # Git debug flags
+    ## Git debug flags
     #$ENV{GIT_TRACE}        = "2";
     #$ENV{GIT_CURL_VERBOSE} = "1";
 
