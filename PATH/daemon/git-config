@@ -1,0 +1,68 @@
+#!/bin/sh
+
+# Wrapper for `git config` .
+# Git allows for storing arbitrary data in its config,
+#  which helps us a lot, since we can use it service specific metadata.
+# However it would be a bad idea to allow unrestricted access to the utility.
+# Namely, giving R/W access would allow an attacker to hide data in plain sight,
+#  storing whatever he wants on our server without a reasonable way to moderate it.
+# Similarly, you really, really dont want users modify hooks
+#  and thereby execute whatever they want.
+
+eecho() {
+    echo $* >> /dev/stderr
+    exit 1
+}
+
+# XXX
+ALLOWED_KEYS="
+    meta.description
+    meta.topic
+    permissions.hidden
+    permissions.write
+    remote.*.sync-directtion
+"
+
+REPO="$GIT_ROOT/$USERNAME/$1.git"
+VERB="$2"
+KEY="$3"
+VALUE="$4"
+
+[ -z "$1" ] && eecho "Repository name missing."
+[ -z "$2" ] && eecho "Verb missing (set/unset)."
+[ -z "$3" ] && eecho "Key missing."
+
+# Prevent repo path injection {'.', '..'}
+case "$1" in
+    *[!a-zA-Z0-9_-]*) eecho "Invalid repository name." ;;
+esac
+
+if [ ! -d "$REPO" ]; then
+    eecho "Repository does not exist: $REPO"
+fi
+
+if [ ${#KEY} -gt 64 ] || [ ${#VALUE} -gt 128 ]; then
+    # 128 can comfortably fit onion v3 URLs
+    eecho "Argument too long."
+fi
+
+case "$VERB" in
+    set|unset) ;;
+    *) eecho "Invalid verb: $VERB. Must be 'set' or 'unset'." ;;
+esac
+
+whitelist() {
+    local input="$1"
+    shift
+    local item
+    for pattern in "$@"; do
+        case "$input" in
+            $pattern) return 0 ;;
+        esac
+    done
+    return 1
+}
+whitelist "$KEY" $ALLOWED_KEYS || eecho "Key '$KEY' is not on the key whitelist."
+
+cd $REPO
+git config $VERB $KEY $VALUE
