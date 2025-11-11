@@ -5,3 +5,4 @@ nytprof/
 config.pl
 git/*
 *.log
+.env/

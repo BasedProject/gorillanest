@@ -19,7 +19,7 @@ from sys import exit
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("gn-daemon")
 
-HOST_KEY_PATH = "gn_host_key"   # XXX
+HOST_KEY_PATH = ".env/gn_host_key"
 LISTEN_ADDR = "0.0.0.0"
 LISTEN_PORT = 2222
 
