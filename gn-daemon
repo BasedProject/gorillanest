@@ -3,21 +3,24 @@
 gn-daemon: Gorillanest daemon accepting commands over SSH
 """
 
-import asyncio
 import os
-import asyncssh
 import subprocess
 import logging
 import shlex
+import asyncio
+import asyncssh
+from configobj import ConfigObj
 from sys import exit
 from os import environ
 
+GLOBAL_CONFIG = {
+    'HOST_KEY_PATH' : None,
+    'LISTEN_ADDR'   : None,
+    'LISTEN_PORT'   : None,
+}
+
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("gn-daemon")
-
-HOST_KEY_PATH = ".env/gn_host_key"
-LISTEN_ADDR = "0.0.0.0"
-LISTEN_PORT = 2222
 
 def validate_password(username, password):
     # XXX
@@ -90,12 +93,12 @@ async def gn_process(proc : asyncssh.SSHServerProcess):
     proc.exit(rc)
 
 async def start_server():
-    host_key_path = ensure_host_key(HOST_KEY_PATH)
+    host_key_path = ensure_host_key(GLOBAL_CONFIG['HOST_KEY_PATH'])
 
     await asyncssh.create_server(
         GNServer,
-        LISTEN_ADDR,
-        LISTEN_PORT,
+        GLOBAL_CONFIG['LISTEN_ADDR'],
+        GLOBAL_CONFIG['LISTEN_PORT'],
         server_host_keys=[host_key_path],
         process_factory=gn_process,
         encoding=None
@@ -103,7 +106,27 @@ async def start_server():
 
     await asyncio.Future()
 
+def init():
+    global GLOBAL_CONFIG
+
+    config      = ConfigObj('config.default.ini')
+    user_config = ConfigObj('config.ini')
+    config.update(user_config)
+
+    if 'ssh' not in config:
+        log.fatal("missing [ssh] section in config file")
+        exit(1)
+
+    for k, v in config.get('ssh', {}).items():
+        k = k.upper() # configparser converts to lower case, because fuck you
+        if k in GLOBAL_CONFIG:
+            GLOBAL_CONFIG[k] = v
+        else:
+            log.fatal(f"unknown config key used '{k}'")
+            exit(1)
+
 if __name__ == "__main__":
+    init()
     try: asyncio.run(start_server())
     except (OSError, asyncssh.Error) as exc:
         log.error("Error starting server: %s", exc)
