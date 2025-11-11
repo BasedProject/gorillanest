@@ -14,6 +14,7 @@ from sys import exit
 from os import environ
 
 GLOBAL_CONFIG = {
+    'GIT_ROOT'      : None,
     'HOST_KEY_PATH' : None,
     'LISTEN_ADDR'   : None,
     'LISTEN_PORT'   : None,
@@ -68,12 +69,13 @@ async def gn_process(proc : asyncssh.SSHServerProcess):
             data_str = data
             if isinstance(data, bytes):
                 data_str = data.decode('utf-8')
-            log.info('\033[32m' + label + ' ' + data_str + '\033[0m')
+            #log.info('\033[32m' + label + ' ' + data_str + '\033[0m')
             writer.write(data)
             await writer.drain()
 
     env = environ.copy()
-    env['USERNAME'] = proc.get_connection().get_extra_info('username')
+    env['USERNAME'] = proc.get_extra_info('username')
+    env['GIT_ROOT'] = GLOBAL_CONFIG['GIT_ROOT']
 
     sub = await asyncio.create_subprocess_exec(
         *validate_client_process(cmd),
@@ -113,12 +115,11 @@ def init():
     user_config = ConfigObj('config.ini')
     config.update(user_config)
 
-    if 'ssh' not in config:
-        log.fatal("missing [ssh] section in config file")
-        exit(1)
-
-    for k, v in config.get('ssh', {}).items():
-        k = k.upper() # configparser converts to lower case, because fuck you
+    config_dict = {}
+    config_dict.update(config.get('core', {}).items())
+    config_dict.update(config.get('ssh', {}).items())
+    
+    for k, v in config_dict.items():
         if k in GLOBAL_CONFIG:
             GLOBAL_CONFIG[k] = v
         else:
