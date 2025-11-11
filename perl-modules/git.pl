@@ -52,12 +52,15 @@ sub new_repository {
 
     my @files = $repo->run('ls-tree', '--name-only', 'HEAD');
 
+    my $description = $repo->run('config', 'get', 'meta.description');
+
     return {
-        name     => $name,
-        owner    => $owner,
-        branches => \@branches,
-        files    => \@files,
-        h_repo   => $repo,
+        name        => $name,
+        owner       => $owner,
+        branches    => \@branches,
+        files       => \@files,
+        h_repo      => $repo,
+        description => $description,
     };
 }
 

@@ -4,6 +4,8 @@
 <body>
   <h1>[% title %]</h1>
 
+  <p>[% h_repository.description %]</p>
+
   <p>Branches:</p>
   <ul>
     [% FOREACH k IN h_repository.branches %]
