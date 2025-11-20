@@ -1,22 +1,11 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 cd "$(dirname "$(readlink -f "$0")")"
+source venv/bin/activate
 
-CGI='./perl/cgi.pl'
-FCGI='./perl/fcgi.pl'
+trap 'kill -TERM "$(jobs -p)" 2>/dev/null' INT TERM EXIT
 
-run=$FCGI
+gn-daemon &
+gn-web &
 
-while [ ! -z $1 ]; do
-    if [ $1 = '-cgi' ]; then
-        run=$CGI
-    elif [ $1 = '-fcgi' ]; then
-        run=$FCGI
-    else break; fi
-    shift
-done
-
-$run $@
-
-# I'm a fan for linguistic redundancy in software
-# This is technically a mental disorder
+wait

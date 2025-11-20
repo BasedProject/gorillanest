@@ -1,0 +1,9 @@
+#!/bin/sh
+
+CONFIG='./service/lighttpd-fcgi.conf'
+
+if (( DEBUG )); then
+    CONFIG='./service/lighttpd-cgi.conf'
+fi
+
+exec lighttpd -D -f $CONFIG
