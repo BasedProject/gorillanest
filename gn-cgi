@@ -90,7 +90,7 @@ sub serve_repository ($username, $repository) { # /$username/$repository
 }
 
 sub serve_api () {
-    if ($GLOBAL_CONFIG->{GIT_ROOT}) {
+    if ($GLOBAL_CONFIG->{DISABLE_API}) {
         $cgi->set_response_status(501)->render(
             text => "The API is disabled. This is most likely a read-only service.",
         );
