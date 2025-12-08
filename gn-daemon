@@ -113,7 +113,7 @@ def init():
 
     config      = ConfigObj('config.default.ini')
     user_config = ConfigObj('config.ini')
-    config.update(user_config)
+    config.merge(user_config)
 
     config_dict = {}
     config_dict.update(config.get('core', {}).items())
