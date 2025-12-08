@@ -18,6 +18,7 @@ sub read_config {
         SOCKET_MAX_CONNECTIONS
         TEMPLATE_ROOT
         HTTPS_ONLY
+        DISABLE_API
     );
     my %core_whitelist = map { $_ => 1 } qw(GIT_ROOT);
 
