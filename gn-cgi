@@ -105,7 +105,7 @@ sub serve_api () {
 
     if ($method ne 'POST') {
         $cgi->set_response_status(405)->render(
-            text => "Method Not Allowed\nOnly GET and POST supported..",
+            text => "Method Not Allowed\nOnly GET and POST supported.",
         );
         return;
     }
