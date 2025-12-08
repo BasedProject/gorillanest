@@ -12,7 +12,6 @@ sub read_config {
 
     my %frontend_whitelist = map { $_ => 1 } qw(
         BARE_REQUEST
-        IMMORTAL
         LOG_FILE
         DB_FILE
         SOCKET_FILE
