@@ -42,6 +42,7 @@ sub serve_template ($template_name, $data, $code = 200) {
         or die "Template: " . $template->error();
 
     $cgi->set_response_status($code)->render(html => $body);
+    exit; # XXX fcgi problem
 }
 
 # --- Page handlers
