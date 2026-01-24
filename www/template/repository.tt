@@ -20,7 +20,7 @@
     [% END %]
   </ul>
 
-  <p>Clone: [% clone %]</p>
+  <p>Clone: <span style='user-select: all'>[% clone %]</span></p>
 
   <h3>README</h3>
   <div class=readme>
