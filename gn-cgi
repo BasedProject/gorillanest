@@ -79,13 +79,15 @@ sub serve_user ($username) { # /$username/
 sub serve_repository ($username, $repository) { # /$username/$repository
     my %data;
 
-    my $host = $cgi->server_name;
+    my $host     = $cgi->server_name;
+    my $port     = $cgi->server_port;
+    my $protocol = $ENV{REQUEST_SCHEME};
 
     $data{username}     = $username;
     $data{repository}   = $repository;
     $data{h_repository} = new_repository("$GLOBAL_CONFIG->{GIT_ROOT}/$username/$repository.git");
     $data{readme}       = new_readme($data{h_repository});
-    $data{clone}        = "$host/~$username/$repository.git";
+    $data{clone}        = "$protocol://$host:$port/~$username/$repository.git";
 
     serve_template("repository.tt", \%data);
 }
