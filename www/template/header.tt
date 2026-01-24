@@ -1,3 +1,10 @@
 <div id=header>
+    <a href="/" class="icon-link">
+      <img
+        style="width: 1.5em; height: 1.5em;"
+        src="gn-logo.png"
+        alt="Home"
+      >
+    </a>
     <a href="/explore">Explore</a>
 </div>
