@@ -30,12 +30,17 @@ sub new_repository {
         }
 
         my @commits;
-        my @logs = $repo->run(log => $b, '--pretty=format:%H;%an;%s');
+        my @logs = $repo->run(
+            log => $b,
+            '--pretty=format:%H;%an;%ad;%s',
+            '--date=format:%Y-%m-%dT%H:%M:%SZ'
+        );
         for my $line (@logs) {
-            my ($hash, $author, $message) = split /;/, $line, 3;
+            my ($hash, $author, $date, $message) = split /;/, $line, 4;
             push @commits, {
                 hash    => $hash,
                 author  => $author,
+                date    => $date,
                 message => $message,
             };
         }

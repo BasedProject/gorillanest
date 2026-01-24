@@ -21,12 +21,32 @@
     [% END %]
   </ul>
 
+  <p>Commits:</p>
+  <div>
+    [% h_repository.branches.first.commits.size %] commits on record </br>
+    Latest commit:
+        [% h_repository.branches.first.commits.first.author %] -
+        [% h_repository.branches.first.commits.first.message %]
+        [% h_repository.branches.first.commits.first.hash.substr(0,6) %]
+        <relative-time datetime=[% h_repository.branches.first.commits.first.date %]>
+        </relative-time>
+        </br>
+    First commit:
+        [% h_repository.branches.first.commits.last.author %] -
+        [% h_repository.branches.first.commits.last.message %]
+        [% h_repository.branches.first.commits.last.hash.substr(0,6) %]
+        <relative-time datetime=[% h_repository.branches.first.commits.last.date %]>
+        </relative-time>
+        </br>
+  </div>
+
   <p>Clone: <span style='user-select: all'>[% clone %]</span></p>
 
   <h3>README</h3>
   <div class=readme>
     [% readme %]
   </div>
+  <script type="module" src="/relative-time-element.bundle.js"></script>
 [% INCLUDE footer.tt %]
 </body>
 </html>
