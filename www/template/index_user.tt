@@ -1,6 +1,6 @@
 <html>
 [% title = "User ${username}" %]
-[% INCLUDE head.tt %]
+[% INCLUDE html_head.tt %]
 <body>
     <h1>[% title %]</h1>
     <ul>

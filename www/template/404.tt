@@ -1,6 +1,6 @@
 <html>
 [% title = "404 Not Found" %]
-[% INCLUDE head.tt %]
+[% INCLUDE html_head.tt %]
 <body>
   <h1>[% title %]</h1>
   <p>It's fucking over</p>

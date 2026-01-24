@@ -1,7 +1,7 @@
 <html>
 [% title = "ACTIVATION PHRASE: GORILLA NEST" %]
 [% description = "Git In The Gorilla Nest!" %]
-[% INCLUDE head.tt %]
+[% INCLUDE html_head.tt %]
 <body>
 [% INCLUDE header.tt %]
 <div>

@@ -1,6 +1,6 @@
 <html>
 [% title = "API INTERFACE" %]
-[% INCLUDE head.tt %]
+[% INCLUDE html_head.tt %]
 <body>
 [% INCLUDE header.tt %]
 <div>
