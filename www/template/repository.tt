@@ -2,6 +2,7 @@
 [% title = "/${username}/${repository}" %]
 [% INCLUDE html_head.tt %]
 <body>
+[% INCLUDE header.tt %]
   <h1>[% title %]</h1>
 
   <p>[% h_repository.description %]</p>
@@ -26,6 +27,6 @@
   <div class=readme>
     [% readme %]
   </div>
-</body>
 [% INCLUDE footer.tt %]
+</body>
 </html>
