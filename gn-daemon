@@ -74,9 +74,6 @@ def ensure_host_key(path: str) -> str:
     return path
 
 def validate_privileged_client_process(cmd : str) -> [str]:
-    # XXX move comment to documentation
-    # Alternatively, a whitelist could be deployed.
-    #  While it is theoretically safer, it was judged to be a safety-theater.
     argv = shlex.split(cmd)
     argv[0] = "PATH/daemon/" + argv[0]
 

@@ -1,38 +1,17 @@
 # Gorillanest
+> ACTIVATION PHRASE: GIT IN THE GORILLA NEST!
 
-## Tech stack
-* Perl for webdev
-* Python for SSH daemon
-* files and SQLite for storage
+Gorillanest is a get server.
+It provides a web-frontend and an SSH interface.
 
-## Project structure
-| Path                 | Description |
-| :------------------- | :---------- |
-| gorillanest          | Run all subservices |
-| config.default.ini   | Default configuration, don't edit this, copy it to ./config.ini |
-| config.ini           | (Nonexistant.) Configuration overriding ./config.default.ini |
-| repositories/        | Default git repository storage path |
-| dummy\_repositories/ | Mock repositories/ contents for testing |
-| www/                 | HTTP served documents | 
-| service/             | Service files {lighttpd, nginx, cron} |
-| perl-module/         | Perl dependencies |
-| PATH/                | Custom scripts and wrappers exposed to the daemons | 
-| gn-cgi               | Web service script |
-| gn-fcgi              | Fast cgi wrapper for gn-cli |
-| gn-daemon            | Custom SSH daemon handling various repo and site management requests |
-
-## URL scheme
-| Path                | Description |
-| :------------------ | :---------- |
-| /                   | Index |
-| /api                | REST API relaying commands as SSH to gn-daemon |
-| /explore            | Project listing |
-| /login              | Redirection to authenticator service |
-| /~{user}            | User index |
-| /~{user}/{repo}     | Repository index |
-| /~{user}/{repo}.git | HTTP git clone endpoint |
+## Running
+```sh
+./gorillanest
+```
 
 ## Configuration
+Gorillanest is internally made up of multiple services.
+`config.ini` your main way of configuration.
 Each section references a service.
 Each daemon validates the section(s) it reads.
 
@@ -51,6 +30,7 @@ The user `git` is reserved for anonymous clones over SSH.
 ## Repository management
 As mentioned registered users can perform various repository tasks
 by commanding Gorillanest daemons.
+Specifically, the scripts under `PATH/daemon/` can be executed by authorized remote users.
 
 Alternatively, the git root can be written by hand, similar to cgit.
 Every project has to reside in a directory which's name will correspond to a user.
