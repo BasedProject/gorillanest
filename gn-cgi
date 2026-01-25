@@ -89,6 +89,9 @@ sub serve_repository ($username, $repository) { # /$username/$repository
     $data{h_repository} = new_repository("$GLOBAL_CONFIG->{GIT_ROOT}/$username/$repository.git");
 
     if (!defined $data{h_repository}) {
+        serve_template("404.tt", {}, 404);
+    }
+    elsif (!keys %{$data{h_repository}}) {
         serve_template("empty_repository.tt", \%data);
     }
 

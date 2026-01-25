@@ -15,10 +15,12 @@ sub new_repository {
     $path = realpath($path);
 
     my $name = basename($path);
-    my $repo = Git::Repository->new(work_tree => $path);
+    my $repo;
+    eval { $repo = Git::Repository->new(work_tree => $path); };
+    return undef unless not $@;
 
     my $has_commits = eval { $repo->run('rev-parse', '--verify', 'HEAD') };
-    return undef unless $has_commits;
+    return {} unless $has_commits;
 
     my @raw_branches = $repo->run('branch');
     my @branches;
