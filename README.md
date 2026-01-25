@@ -46,6 +46,8 @@ Scrimshaw is the only supported authenticator.
 
 Registered users can perform various remote commands over SSH or HTTP.
 
+The user `git` is reserved for anonymous clones over SSH.
+
 ## Repository management
 As mentioned registered users can perform various repository tasks
 by commanding Gorillanest daemons.

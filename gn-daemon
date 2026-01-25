@@ -36,7 +36,8 @@ def validate_password(username, password):
 # XXX should not reread every time
 def validate_key(username, key):
     try:
-        authorized = asyncssh.read_authorized_keys(f'.env/authorized_keys')
+        if username == 'git': return True
+        authorized = asyncssh.read_authorized_keys(".env/authorized_keys")
         return authorized.validate(key, username, "xolatile.top") != None
     except:
         log.error(traceback.format_exc())
@@ -47,7 +48,9 @@ def validate_key(username, key):
 #   this class doesn't dominate the script,
 #   and its never in question what should and should not be inside it.
 class GNServer(asyncssh.SSHServer):
-    def begin_auth(self, username): return True
+    def begin_auth(self, username):
+        log.info(f"Connection initiated by {username}")
+        return True
 
     def password_auth_supported(self):
         return not GLOBAL_CONFIG['DISABLE_AUTHENTICATOR'] == '1'
@@ -70,11 +73,22 @@ def ensure_host_key(path: str) -> str:
 
     return path
 
-def validate_client_process(cmd : str) -> [str]:
+def validate_privileged_client_process(cmd : str) -> [str]:
+    # XXX move comment to documentation
     # Alternatively, a whitelist could be deployed.
     #  While it is theoretically safer, it was judged to be a safety-theater.
     argv = shlex.split(cmd)
     argv[0] = "PATH/daemon/" + argv[0]
+
+    return argv
+
+def validate_guest_client_process(cmd : str) -> [str]:
+    argv = shlex.split(cmd)
+    if argv[0] != 'git-upload-pack':
+        log.warning(f"Guest tried funny business with '{argv[0]}'.")
+        raise Exception("Stop fucking with my server!")
+
+    argv[0] = "PATH/daemon/git-upload-pack"
 
     return argv
 
@@ -97,10 +111,6 @@ async def gn_process(proc : asyncssh.SSHServerProcess):
         while True:
             data = await reader.read(4096)
             if not data: break
-            data_str = data
-            if isinstance(data, bytes):
-                data_str = data.decode('utf-8')
-            #log.info('\033[32m' + label + ' ' + data_str + '\033[0m')
             writer.write(data)
             await writer.drain()
 
@@ -108,6 +118,11 @@ async def gn_process(proc : asyncssh.SSHServerProcess):
     env['PATH']     = 'PATH/daemon/'
     env['USERNAME'] = proc.get_extra_info('username')
     env['GIT_ROOT'] = GLOBAL_CONFIG['GIT_ROOT']
+
+    if proc.get_extra_info('username') == 'git':
+        validate_client_process = validate_guest_client_process
+    else:
+        validate_client_process = validate_privileged_client_process
 
     sub = await asyncio.create_subprocess_exec(
         *validate_client_process(cmd),
