@@ -144,6 +144,8 @@ def init():
             log.fatal(f"unknown config key used '{k}'")
             exit(1)
 
+    log.info(GLOBAL_CONFIG)
+
 if __name__ == "__main__":
     init()
     try: asyncio.run(start_server())
