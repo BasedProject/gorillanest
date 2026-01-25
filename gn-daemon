@@ -6,6 +6,7 @@ gn-daemon: Gorillanest daemon accepting commands over SSH
 import os
 import subprocess
 import logging
+import functools
 import traceback
 import shlex
 import asyncio
@@ -77,6 +78,18 @@ def validate_client_process(cmd : str) -> [str]:
 
     return argv
 
+def ssh_echo_exceptions(func):
+    @functools.wraps(func)
+    async def wrapper(proc: asyncssh.SSHServerProcess, *args, **kwargs):
+        try: return await func(proc, *args, **kwargs)
+        except Exception as e:
+            log.warning(e)
+            proc.stderr.write(f"error: {e}\n".encode())
+            proc.exit(1)
+        finally: proc.close()
+    return wrapper
+
+@ssh_echo_exceptions
 async def gn_process(proc : asyncssh.SSHServerProcess):
     cmd = proc.command
 
