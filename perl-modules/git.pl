@@ -20,7 +20,7 @@ sub new_repository {
     eval { $repo = Git::Repository->new(work_tree => $path); };
     return undef unless not $@;
 
-    my $has_commits = eval { $repo->run('rev-parse', '--verify', 'HEAD') };
+    my $has_commits = eval { $repo->run('rev-parse', '--verify' => 'HEAD') };
     return {} unless $has_commits;
 
     my @raw_branches = $repo->run('branch');
@@ -58,7 +58,7 @@ sub new_repository {
         };
     }
 
-    # first commiter as a fallback
+    # first commiter as a fallback # XXX
     my $owner = ($repo->run('log', '--reverse', '--pretty=format:%an'))[0];
 
     my @files = $repo->run('ls-tree', '--name-only', 'HEAD');
