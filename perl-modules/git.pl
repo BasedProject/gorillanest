@@ -9,6 +9,7 @@ use Cwd 'realpath';
 use File::Basename;
 use Path::Tiny;
 use Git::Repository;
+use String::Util 'trim';
 
 sub new_repository {
     my ($path) = @_;
@@ -26,7 +27,7 @@ sub new_repository {
     my @branches;
 
     for my $b (@raw_branches) {
-        chomp $b;
+        $b = trim($b);
         my $is_active = 0;
 
         if ($b =~ /^\* /) {
