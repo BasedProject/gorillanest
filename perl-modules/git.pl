@@ -17,6 +17,9 @@ sub new_repository {
     my $name = basename($path);
     my $repo = Git::Repository->new(work_tree => $path);
 
+    my $has_commits = eval { $repo->run('rev-parse', '--verify', 'HEAD') };
+    return undef unless $has_commits;
+
     my @raw_branches = $repo->run('branch');
     my @branches;
 

@@ -1,0 +1,35 @@
+<html>
+[% title = "/${username}/${repository}" %]
+[% INCLUDE html_head.tt %]
+<body>
+[% INCLUDE header.tt %]
+  <h1>[% title %]</h1>
+
+  <p>This appears to be an empty repository.</p>
+
+  <div>
+    <p>Quick setup - if youve done this kind of thing before</p>
+    <p>Clone: <span style='user-select: all'>[% clone %]</span></p>
+  </div>
+
+  <div>
+    <p>...or create a new repository on the command line</p>
+    <pre style='user-select: all'>
+echo "# [% repository %]" >> README.md
+git init
+git add README.md
+git commit -m "init"
+git remote add origin [% clone %]
+git push --set-upstream origin master</pre>
+  </div>
+
+  <div>
+    <p>...or push an existing repository from the command line</p>
+    <pre style='user-select: all'>
+git remote add origin [% clone %]
+git push --set-upstream origin master</pre>
+  </div>
+
+[% INCLUDE footer.tt %]
+</body>
+</html>
