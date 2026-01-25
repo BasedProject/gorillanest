@@ -105,6 +105,7 @@ async def gn_process(proc : asyncssh.SSHServerProcess):
             await writer.drain()
 
     env = environ.copy()
+    env['PATH']     = 'PATH/daemon/'
     env['USERNAME'] = proc.get_extra_info('username')
     env['GIT_ROOT'] = GLOBAL_CONFIG['GIT_ROOT']
 

@@ -1,27 +1,35 @@
-#!/bin/sh
+#!/usr/bin/perl
 
-PARENT_PATH="$GIT_ROOT/$USERNAME"
-REPO_NAME="$1"
+use strict;
+use warnings;
 
-eecho() {
-    echo $* >> /dev/stderr
-    exit 1
+sub eecho {
+    print STDERR @_;
+    exit 1;
 }
 
-if [ -z "$PARENT_PATH" ] || [ -z "$REPO_NAME" ]; then
-    eecho "Usage error."
-fi
+my $parent_path = $ENV{GIT_ROOT} . '/' . $ENV{USERNAME};
+my $repo_name   = $ARGV[0] // '';
 
-if [ ! -d "$PARENT_PATH" ]; then
-    echo "Parent path '$PARENT_PATH' does not exist. Creating it..."
-    mkdir -p "$PARENT_PATH" || { eecho "Failed to create parent directory"; }
-fi
+if ( $repo_name =~ /([A-Za-z0-9_-]+)/ ) {
+    $repo_name = $1;
+}
 
-REPO_PATH="$PARENT_PATH/$REPO_NAME.git"
+if ( ! $parent_path
+||   ! $repo_name ) {
+    eecho "Usage error.";
+}
 
-if [ -d "$REPO_PATH" ]; then
-    eecho "Repository '$REPO_PATH' already exists!"
-    exit 1
-fi
+if ( ! -d "$parent_path" ) {
+    print "Parent path '$parent_path' does not exist. Creating it...";
+    mkdir -p "$parent_path" or eecho "Failed to create parent directory";
 
-git init --bare "$REPO_PATH" || { eecho "Failed to initialize bare repo"; }
+}
+
+my $repo_path = "$parent_path/$repo_name.git";
+
+if ( -d "$repo_path" ) {
+    eecho "Repository '$repo_path' already exists!";
+}
+
+system('git-init', '--bare', $repo_path) == 0 or eecho "Failed to initialize bare repo";
