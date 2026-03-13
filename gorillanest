@@ -1,2 +1,3 @@
 #!/bin/sh
+export PERL5LIB="local/lib/perl5/:$PERL5LIB"
 hivemind --root $(realpath .) service/gorillanest.procfile
