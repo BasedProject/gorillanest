@@ -19,8 +19,9 @@ sub read_config {
         TEMPLATE_ROOT
         HTTPS_ONLY
         DISABLE_API
+    my %core_whitelist = map { $_ => 1 } qw(
+        GIT_ROOT
     );
-    my %core_whitelist = map { $_ => 1 } qw(GIT_ROOT);
 
     my @config_array;
     push @config_array, @{ Config::INI::Reader::Ordered->read_file($default_file) };
