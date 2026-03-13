@@ -88,6 +88,12 @@ sub does_exist_in_repository {
     return scalar grep { $_ eq $path } @$files;
 }
 
+sub txt2html ($txt) {
+    $txt =~ s/</&lt;/g;
+    $txt =~ s/>/&gt;/g;
+    return "<pre>$txt</pre>";
+}
+
 sub new_readme {
     my ($h_repository) = @_;
 
@@ -95,9 +101,7 @@ sub new_readme {
     for my $f ('README', 'README.txt') {
         if (does_exist_in_repository($f, $h_repository)) {
             my $text = read_git_file($h_repository->{path}, 'HEAD', $f);
-            $text =~ s/</&lt;/g;
-            $text =~ s/>/&gt;/g;
-            return "<pre>$text</pre>";
+            return txt2html($text);
         }
     }
 
@@ -105,8 +109,14 @@ sub new_readme {
     if (does_exist_in_repository("README.md", $h_repository)) {
         my $text = git_cat($h_repository, 'README.md');
         my ($in, $out);
-        my $pid = open2($out, $in, 'ts-md2html', '/dev/stdin')
-            or die "failed to run ts-md2html: $!";
+        my $pid = eval {
+            open2($out, $in, 'ts-md2html', '/dev/stdin');
+        };
+
+        if ($@) {
+            $text = txt2html($text);
+            return '<h2>!!! MD -> HTML CONVERTER MISSING; USING PLAIN TEXT !!!</h2>' . $text;
+        };
 
         print $in $text;
         close $in;
