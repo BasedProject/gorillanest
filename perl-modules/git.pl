@@ -18,7 +18,10 @@ sub new_repository {
     my $name = basename($path);
     my $repo;
     eval { $repo = Git::Repository->new(work_tree => $path); };
-    return undef unless not $@;
+    do {
+        print STDERR "!! " . $@ . "\n";
+        return undef;
+    } unless not $@;
 
     my $has_commits = eval { $repo->run('rev-parse', '--verify' => 'HEAD') };
     return {} unless $has_commits;
