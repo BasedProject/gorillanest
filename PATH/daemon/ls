@@ -1,3 +1,3 @@
 #!/bin/sh
 
-ls PATH/daemon/
+/bin/ls PATH/daemon/
