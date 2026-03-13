@@ -7,7 +7,7 @@ git clone --bare https://github.com/agvxov/cursed_c
 git clone --bare https://github.com/agvxov/dictate
 git clone --bare https://github.com/agvxov/chadsay
 
-mkdir test
-cd test
+mkdir test.git
+cd test.git
 git init --bare
 cd ..
