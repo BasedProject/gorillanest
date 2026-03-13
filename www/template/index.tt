@@ -5,71 +5,62 @@
 <body>
 [% INCLUDE header.tt %]
 <div>
-    <center>
+    <header>
         <h1>[% title %]</h1>
         <h2>[% description %]</h2>
-        <pre style="text-align: left"><code>
-                       .  *   % @ - .@-            @:  :    :      @.
-                  :     .     @. -.     -           ++       =     %@ @:
-              .   .       *. -+%-       -- @    ..   +=       =@-    =@-
-          ... :       .:. *                 ::    =   =-       .@+     @=.
-          ::     .-:-:.:=   -                 @*   @@  -=       @@+-   ==
-          **     :-. :--*+=              .     :+   +.           **=-   +::
-       :.==..=+=-:-:.::=+=+               ..     :   :  .   .    :+== = +-
-      .+@%+--:   ..    .:::.                           ..         .*=    =:
-     .=@+    .*==    :==-::.                      ..-::: ..:    .  ::    =
-  ..===-.:.+++-   -+*+==::.         .                  ::           -    =-
-    =. :+++==+@@%%@++-:-....                                        %=   @-
-    .:-+*@@*@@*=---=+-.... .                                        -+   =-
-  *+.   -  +:=  -@@**              =+=%%%@@@@@@+:                   -.   =-
-   ::..+@  :=.  :@%@@@@@@@@*=.  =++--=@@*+-:=**@@*@*=---:::.        @-    -
-  @=:-:=@: +@=+-  .--..-::-*@@@@@%*@@-.    .=-:=+++**+-.=**%@@@@@@  @:  @*:
-  *@*+==@+:*+-----@*-       .:---=@@ :+@@@@@*@**@*@:    :*%@@==-=%@@%:   .:
-  =   +=   +*@%%+.-@=              =        :+*+=  @@@@@@%  --.  +  :-  :--:-::.:...
-  .   *%  :@*@%= :@%%.  ..         @ :**+++++*-    @+  -@**@@@%@@=    @+ .-----.:.::      +-----------------------+
-  @%*-@@  -@@%+    :-.     ..       *  .:-:-..    =@    @+-.      :@@ %%%------=----      |                       |
-  =*=-+@.      %*               :.  *@       .   @@      :=++++: -*@. @:.::-:-:-::::      |                       |
-  :++:::@+             ..    ...:..   ***_      @        -  ..   @-  =-.---:::------______|   WELCOME TO GORILLA  |
-        *@@        ..   ..   ....         -*@@@@-        +@^^*      @*                        NEST ,              |
-         *%@@+@@@....   ::...:...     ..-:-+++            = :==**@@@+=              ______,                       |
-         :-=@  =@      ..:........  ..:-=++**+-+@**++-.   .=.     *----:----====++==      |                       |
-         --==   :    .. ....:::::::.:::-=+-:..-@@@@%%%%@@@+=:.    +--===-------=++==      +-----------------------+
-         *@%.      ...... .  ..:::..:..:..  ...----==+*+  :-.    @+--========-:-++=-
-           @       ...... .....:: .   ::--=:--=+@@%@@+=-  :-:   ++=
-         +*           .   ....:--::. :++**=. .  :    :+*=      -+-
-         @=       .....:..:....:-.  *%@%@@@@@@%@@++++*+++==   .==
-        %@+       .-::::.. ....:::.=%%*+-  -@@@@%@%@@@@%@%@+ :-==
-     @@@@         .-=-----.  . ::--+**-.::.   =@@@@@@@=+*%= :%@+
--*%@@@*           .:-:::::-:::.:-==**+=-..++-          ==. :==           I CAN BELIEVE
-:.              .  ::...:::..::..:-=--:-:-*%@@%=---====+-:--                 TOO         YOU
-+@@-             -.:==::::::--...  :.  . .:=%%@@@@@@=-=--=+                    SOFTWARE WORKS
---+@@@*       .   .=-++=------::: .:          --=:  -==-++
-=+++*%@@@=      :   *-++=====++++++@+==++-. .. .    -=-:                    !T JUST WORKS ¡
-***+*+=+%@@@=    ::   @@@*+++++*@@*@%@@@@@**++++++--=-=-
-++++**+++++@@@@%        @@@*@@*+@****@@@@%%%%@%%@@@*%*
-===+++********@@@@.   .   :+**@@@@@@@@@@@@@@@@@@@%@@@%
-++++*+********++*%@@@    ..::=*+****@*%%%%%%%@@@@@=  =@
-======++*@++**+****@@@@@   .:-==++====-++*+@%+-   :=+   :++
-===+==+++*************@@@@@:.-===++++*****++:.: :@.+@**  :++
-+++++=++=+=****+*+*****+@@@@@=::--====-----:.::  @:::**@*  :++
-*****+++++=++++***@**@*****@@@@@%=-:::.:.. .:.   @=-..*@***=:-%
-**+****+++++*****+***********@*@@%@%@+           @+*=- -%++++--*@
-+++******++++++*+*+********@******@@%@@@@@-    -@@+*+*+ -@*=++=-=%
-*********+*****+*+**+**************++***%@@@@@@@@@+++++*:.*****+=*@            ((( HE COULDN'T GIT CLONE ALWAYS )))
-++admin@chud.cyou***+*********@*****@***+++**+*+**+++==**=:=+++*+=*%@          (((     NO HIM STOPPING NOW      )))
-*****+*+*@@*+*******+@@*+********@****@++*++++++++*+**==*++-*+=+++=*%*
-*+++****+@***++***+***+++********+++*+****++*+*+*+++++==+++++*@+++==@%
+    </header>
 
-*         WKꓵΓꓕᖉⱯ ACTIVATION TRANMISSION RECIEVED: GO RI LL A_ NE ST         *
-* Copyright 2025-∞ People's Republic of Magyarország & Emil's Email Services *
+    <p>
+        Gorillanest is a Git-server,
+        that provides a web-frontend and an SSH interface.
+    </p>
 
----
+    <p class="shout-out">
+        <strong>CAUTION:</strong>
+        Alpha software. Some documented features may be incomplete or experimental.
+    </p>
 
-Gitea broke so I had a low wage hungarian programmer write this.
-
----
-        </code></pre>
-    </center>
+    <div class="ipsum">
+        <p>
+            Zarathustra azonban ekkor félbeszakította a tajtékzó bolondot és befogta a száját.
+        </p>
+        <p>
+            „Hagyd már abba!” kiáltott Zarathustra, „rég utálom már beszéded és a fajtádat!
+        </p>
+        <p>
+            Miért lakoztál oly soká a mocsárban, hogy békává és varangyá kellett válnod saját
+            magadnak is?
+        </p>
+        <p>
+            Avagy nem poshadt, zavaros mocsár-vér folyik-e immár a te ereidben is, hogy így
+            megtanultál vartyogva káromolni?
+        </p>
+        <p>
+            Miért nem mentél az erdőbe ideje korán? Vagy álltál az eke szarva mögé? Avagy
+            nem kínál-e a tenger elég zöldellő szigetet?
+        </p>
+        <p>
+            Megveted megvetésedet; ha pedig engem óva intesz – miért nem inted óva saját magad?
+        </p>
+        <p>
+            Csakis a szeretetből szárnyalhat föl az én megvetésem és az én óva intő madaram:
+            nem pedig a mocsárból! –
+        </p>
+        <p>
+            Zarathustra majmának mondanak, te tajtékzó bolond: nékem azonban röfögő disznó
+            vagy – röfögésed végül még megkeseríti a bolondság dícséretét.
+        </p>
+        <p>
+            Vajon mitől tört föl belőled első ízben a röfögés? Hogy senki nem hízelkedett néked
+            eleget – azért telepedtél a mocsokba, hogy jó okod legyen röfögni –
+            – hogy okod legyen derekasan bosszút állni! Hisz tajtékzásod is csak bosszú, te
+            hivalkodó bolond, átok rajtad!
+        </p>
+        <p>
+            Csakhogy bolond szavad nékem árt, legyen bár mégoly igazad! És hogyha százszor
+            igaza volna is Zarathustra szavának: te mindétig gazul cselekednél – nevemben szólva!”
+        </p>
+    </div>
 </div>
 [% INCLUDE footer.tt %]
 </body>
