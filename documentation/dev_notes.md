@@ -23,6 +23,20 @@ and it refers to the project as a whole.
 | gn-fcgi              | Fast cgi wrapper for gn-cli |
 | gn-daemon            | Custom SSH daemon handling various repo and site management requests |
 
+## Git config extensions
+Git config allows for storing arbitrary data.
+We utilize this to store metadata meaningful to Gorillanest within the repos themselves.
+
+The extensions are:
+- meta:
+    * description [string]
+    * topic       [string-list]
+- remote [url]:
+    * sync-direction [push|pull|none]
+- permissions
+    * hidden [true|false]
+    * write  [user-list]
+
 ## Web
 
 ### URL scheme
