@@ -35,7 +35,8 @@ sub serve_template ($template_name, $data, $code = 200) {
     my $body;
 
     my $template = Template->new({
-        INCLUDE_PATH => $GLOBAL_CONFIG->{TEMPLATE_ROOT}
+        ENCODING => 'utf8',
+        INCLUDE_PATH => $GLOBAL_CONFIG->{TEMPLATE_ROOT},
     });
 
     $template->process($template_name, $data, \$body)
