@@ -114,15 +114,6 @@ DISTRIBUTIONS
       perl 5.006
       strict 0
       warnings 0
-  IO-Tty-1.20
-    pathname: T/TO/TODDR/IO-Tty-1.20.tar.gz
-    provides:
-      IO::Pty 1.20
-      IO::Tty 1.20
-      IO::Tty::Constant 1.20
-    requirements:
-      ExtUtils::MakeMaker 0
-      Test::More 0
   IPC-Run-20250809.0
     pathname: N/NJ/NJM/IPC-Run-20250809.0.tar.gz
     provides:
@@ -136,7 +127,6 @@ DISTRIBUTIONS
       IPC::Run::Win32Pump 20250809.0
     requirements:
       ExtUtils::MakeMaker 0
-      IO::Pty 1.08
       Test::More 0.47
   Mixin-Linewise-0.111
     pathname: R/RJ/RJBS/Mixin-Linewise-0.111.tar.gz
