@@ -4,6 +4,9 @@
 Gorillanest is a Git server.
 It provides a web-frontend and an SSH interface.
 
+> [!CAUTION]
+> Gorillanest is currently in an Alpha testing phase!
+
 ## Dependencies
 * Perl
 * Python (and environment as specified by `requirements.txt`)
