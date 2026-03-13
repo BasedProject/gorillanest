@@ -22,6 +22,7 @@ GLOBAL_CONFIG = {
     'LISTEN_PORT'           : None,
     'DISABLE_AUTHENTICATOR' : None,
 }
+AUTHORIZED_KEYS = None
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("gn-daemon")
@@ -37,8 +38,8 @@ def validate_password(username, password):
 def validate_key(username, key):
     try:
         if username == 'git': return True
-        authorized = asyncssh.read_authorized_keys(".env/authorized_keys")
-        return authorized.validate(key, username, "xolatile.top") != None
+        # XXX Allows in anyone if the key is correct
+        return AUTHORIZED_KEYS.validate(key, username, "xolatile.top") != None
     except:
         log.error(traceback.format_exc())
 
@@ -153,7 +154,7 @@ async def start_server():
     await asyncio.Future()
 
 def init():
-    global GLOBAL_CONFIG
+    global GLOBAL_CONFIG, AUTHORIZED_KEYS
 
     config      = ConfigObj('config.default.ini')
     user_config = ConfigObj('config.ini')
@@ -171,6 +172,8 @@ def init():
             exit(1)
 
     log.info(GLOBAL_CONFIG)
+
+    AUTHORIZED_KEYS = asyncssh.read_authorized_keys(".env/authorized_keys")
 
 if __name__ == "__main__":
     init()
