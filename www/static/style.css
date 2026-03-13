@@ -207,3 +207,15 @@ hr {
         animation: none !important;
     }
 }
+
+/* Repositories */
+.repository-info-section {
+    border: solid 1px var(--border);
+    border-radius: var(--radius);
+    padding: 6px;
+    margin: 12px;
+}
+
+.repository-info-section>* {
+    margin: 0px;
+}

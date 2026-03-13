@@ -3,44 +3,50 @@
 [% INCLUDE html_head.tt %]
 <body>
 [% INCLUDE header.tt %]
-  <h1>[% title %]</h1>
+  <h1 class="repository-name">[% title %]</h1>
 
-  <p>[% h_repository.description %]</p>
+  <p class="repository-clone"><b>Clone: </b><span style='user-select: all'>[% clone %]</span></p>
 
-  <p>Branches:</p>
-  <ul>
-    [% FOREACH k IN h_repository.branches %]
-      <li>[% k.name %]</li>
-    [% END %]
-  </ul>
+  <p class="repository-description">[% h_repository.description %]</p>
 
-  <p>Files:</p>
-  <ul>
-    [% FOR i IN h_repository.files %]
-      <li>[% i %]</li>
-    [% END %]
-  </ul>
-
-  <p>Commits:</p>
-  <div>
-    [% h_repository.branches.first.commits.size %] commits on record </br>
-    Latest commit:
-        [% h_repository.branches.first.commits.first.author %] -
-        [% h_repository.branches.first.commits.first.message %]
-        [% h_repository.branches.first.commits.first.hash.substr(0,6) %]
-        <relative-time datetime=[% h_repository.branches.first.commits.first.date %]>
-        </relative-time>
-        </br>
-    First commit:
-        [% h_repository.branches.first.commits.last.author %] -
-        [% h_repository.branches.first.commits.last.message %]
-        [% h_repository.branches.first.commits.last.hash.substr(0,6) %]
-        <relative-time datetime=[% h_repository.branches.first.commits.last.date %]>
-        </relative-time>
-        </br>
+  <div class="repository-info-section">
+    <h3>Branches:</h3>
+    <ul>
+      [% FOREACH k IN h_repository.branches %]
+        <li>[% k.name %]</li>
+      [% END %]
+    </ul>
   </div>
 
-  <p>Clone: <span style='user-select: all'>[% clone %]</span></p>
+  <div class="repository-info-section">
+   <h3>Files:</h3>
+   <ul>
+     [% FOR i IN h_repository.files %]
+       <li>[% i %]</li>
+     [% END %]
+   </ul>
+  </div>
+
+  <div class="repository-info-section">
+    <h3>Commits:</h3>
+    <div>
+      [% h_repository.branches.first.commits.size %] commits on record </br>
+      <h4>Latest commit:</h4>
+          [% h_repository.branches.first.commits.first.author %] -
+          [% h_repository.branches.first.commits.first.message %]
+          [% h_repository.branches.first.commits.first.hash.substr(0,6) %]
+          <relative-time datetime=[% h_repository.branches.first.commits.first.date %]>
+          </relative-time>
+          </br>
+      <h4>First commit:</h4>
+          [% h_repository.branches.first.commits.last.author %] -
+          [% h_repository.branches.first.commits.last.message %]
+          [% h_repository.branches.first.commits.last.hash.substr(0,6) %]
+          <relative-time datetime=[% h_repository.branches.first.commits.last.date %]>
+          </relative-time>
+          </br>
+    </div>
+  </div>
 
   <h3>README</h3>
   <div class=readme>
