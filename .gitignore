@@ -6,6 +6,8 @@
 *.log
 repositories/*
 dummy-repositories/*
+# Python
+venv/
 # Perl
 local/
 vendor/
