@@ -19,6 +19,8 @@ sub read_config {
         TEMPLATE_ROOT
         HTTPS_ONLY
         DISABLE_API
+        USE_CGI
+    );
     my %core_whitelist = map { $_ => 1 } qw(
         GIT_ROOT
     );

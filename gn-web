@@ -1,9 +1,15 @@
-#!/bin/sh
+#!/usr/bin/perl
+require 'perl-modules/config-frontend.pl';
 
-CONFIG='./service/lighttpd-fcgi.conf'
+our $GLOBAL_CONFIG;
+ConfigFrontend::read_config();
 
-if (( DEBUG )); then
-    CONFIG='./service/lighttpd-cgi.conf'
-fi
+my $lighttpd_config_path;
 
-exec lighttpd -D -f $CONFIG
+if ($ENV{'DEBUG'} || $GLOBAL_CONFIG->{'USE_CGI'} ) {
+    $lighttpd_config_path = './service/lighttpd-cgi.conf';
+} else {
+    $lighttpd_config_path = './service/lighttpd-fcgi.conf';
+}
+
+exec qx( lighttpd -D -f $lighttpd_config_path );
