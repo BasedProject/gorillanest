@@ -14,6 +14,7 @@ use String::Util 'trim';
 sub new_repository {
     my ($path) = @_;
     $path = realpath($path);
+    return undef unless $path;
 
     my $name = basename($path);
     my $repo;
