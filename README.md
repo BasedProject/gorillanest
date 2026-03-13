@@ -1,8 +1,8 @@
 # Gorillanest
 > ACTIVATION PHRASE: GIT IN THE GORILLA NEST!
 
-Gorillanest is a Git server.
-It provides a web-frontend and an SSH interface.
+Gorillanest is a Git-server,
+that provides a web-frontend and an SSH interface.
 
 > [!CAUTION]
 > Gorillanest is currently in an Alpha testing phase!
