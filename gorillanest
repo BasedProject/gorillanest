@@ -21,4 +21,8 @@ trap cleanup INT TERM EXIT
 superwise_process gn-daemon
 superwise_process gn-web
 
-wait "${pids[@]}"
+#wait "${pids[@]}"
+wait -n
+status=$?
+cleanup
+exit "$status"
