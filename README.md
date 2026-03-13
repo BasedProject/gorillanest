@@ -35,7 +35,7 @@ Gorillanest aims to sit in the middle.
 The target audience is based internet schitzos.
 
 ## Dependencies
-* Perl
+* Perl (and environment as specified by `cpanfile`)
 * Python (and environment as specified by `requirements.txt`)
 * Git
 * Lighttpd
