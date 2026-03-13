@@ -56,11 +56,11 @@ Git config allows for storing arbitrary data.
 We utalize this to store metadata meaningful to Gorillanest within the repos themselves.
 
 The extensions are:
-    - meta:
-        * description [string]
-        * topic       [string-list]
-    - remote [url]:
-        * sync-direction [push|pull|none]
-    - permissions
-        * hidden [true|false]
-        * write  [user-list]
+- meta:
+    * description [string]
+    * topic       [string-list]
+- remote [url]:
+    * sync-direction [push|pull|none]
+- permissions
+    * hidden [true|false]
+    * write  [user-list]
