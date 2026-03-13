@@ -57,7 +57,7 @@ sub serve_explore () { # /explore
     $data{to_link}      = \&repository_to_link;
     $data{to_name}      = \&repository_to_name;
     $data{repositories} = [
-        map { s/^$GLOBAL_CONFIG->{GIT_ROOT}\///r }
+        map { s/^$GLOBAL_CONFIG->{GIT_ROOT}\/?//r }
         @{ directories_at_level($GLOBAL_CONFIG->{GIT_ROOT}, 2) }
     ];
 
