@@ -1,7 +1,7 @@
 # Gorillanest
 > ACTIVATION PHRASE: GIT IN THE GORILLA NEST!
 
-Gorillanest is a get server.
+Gorillanest is a Git server.
 It provides a web-frontend and an SSH interface.
 
 ## Running
@@ -31,6 +31,8 @@ The user `git` is reserved for anonymous clones over SSH.
 As mentioned registered users can perform various repository tasks
 by commanding Gorillanest daemons.
 Specifically, the scripts under `PATH/daemon/` can be executed by authorized remote users.
+(None of those scripts allow for arbitrary remote code execution
+and you should never add one that does.)
 
 Alternatively, the git root can be written by hand, similar to cgit.
 Every project has to reside in a directory which's name will correspond to a user.
