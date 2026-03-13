@@ -10,8 +10,15 @@ It provides a web-frontend and an SSH interface.
 > [!CAUTION]
 > Not everything mentioned in the documentation is implemented yet!
 
+## Features
+* Read/write or read-only git serving
+* Anonymous SSH clones
+* Trivial to restore/migrate
+* Mirroring of repositories, users or instances
+* UNIX philosophy abiding
+
 ## Rationale
-tl;dr: Gitea broke so I had a low wage Hungarian programmer write this.
+**TL;DR:** Gitea broke so I had a low wage Hungarian programmer write this.
 
 Git servers tend to fall into two categories:
 * suckless read-only frontends
@@ -26,13 +33,6 @@ while still not being entirely satisfactory.
 
 Gorillanest aims to sit in the middle.
 The target audience is based internet schitzos.
-
-## Features
-* Read/write or read-only git serving
-* Anonymous SSH clones
-* Trivial to restore/migrate
-* Mirroring of repositories, users or instances
-* UNIX philosophy abiding
 
 ## Dependencies
 * Perl
