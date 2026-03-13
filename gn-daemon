@@ -39,6 +39,7 @@ def validate_key(username, key):
     try:
         if username == 'git': return True
         # XXX Allows in anyone if the key is correct
+        if AUTHORIZED_KEYS == None: return False
         return AUTHORIZED_KEYS.validate(key, username, "xolatile.top") != None
     except:
         log.error(traceback.format_exc())
@@ -173,7 +174,8 @@ def init():
 
     log.info(GLOBAL_CONFIG)
 
-    AUTHORIZED_KEYS = asyncssh.read_authorized_keys(".env/authorized_keys")
+    try: AUTHORIZED_KEYS = asyncssh.read_authorized_keys(".env/authorized_keys")
+    except: pass
 
 if __name__ == "__main__":
     init()
