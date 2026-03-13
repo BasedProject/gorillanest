@@ -1,104 +1,209 @@
-body {
-margin: auto;
-width: 50%;
+:root{
+    --bg: #f7efe2;         /* warm sand */
+    --panel: #efe4d1;      /* lighter panel */
+    --muted: #e6dcc6;      /* subtle sand */
+    --accent: #b88456;     /* sandy brown accent */
+    --accent-2: #9a6b45;   /* darker accent */
+    --text: #2b2b28;       /* main text (high contrast) */
+    --muted-text: #575247; /* secondary text */
+    --code-bg: #f3eede;    /* code background */
+    --border: #dfcfb3;     /* soft border */
+    --link: #6a9aa2;       /* gentle teal for links */
+    --shadow: 0 6px 18px rgba(38,30,22,0.08);
+    --radius: 12px;
+    --max-width: 900px;
 }
-h1, h2, h3 {
-padding-left: 3em;
+
+/* Reset / sensible defaults */
+* {
+    box-sizing: border-box;
+}
+html,body {
+    height: 100%;
+    background: var(--bg) !important;
+    color: var(--text) !important;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+}
+body {
+    margin: 2.5rem auto;
+    max-width: var(--max-width);
+    padding: 2rem;
+    line-height: 1.6;
+    font-size: 18px;
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.25), transparent);
+}
+
+/* Ensure our rules win when competing with other broad overrides */
+html, body, * {
+    background-color: transparent !important;
+}
+
+/* Page container styling */
+header, main, footer, .readme {
+    background: linear-gradient(180deg, var(--panel), #fbf6ec);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow);
+}
+
+/* Titles */
+header h1, #title {
+    margin: 0;
+    font-size: clamp(1.6rem, 3.2vw, 2.6rem);
+    line-height: 1.05;
+    color: var(--accent-2);
+    letter-spacing: -0.01em;
+    font-weight: 700;
+}
+header h2 {
+    margin: 0.35rem 0 0;
+    font-size: clamp(1rem, 2.2vw, 1.25rem);
+    color: var(--muted-text);
+    font-weight: 600;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--accent-2);
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
 }
 h4 {
-padding-left: 1em;
+    font-size: 1rem;
 }
+
+/* Paragraphs and text flow */
 p {
-padding-left: 1em;
+    margin: 0 0 1rem 0;
+    padding: 0;
+    color: var(--text);
+    text-wrap: balance;
+    hyphens: auto;
 }
-pre {
-font-weight: bold;
+.ipsum p {
+    max-width: 65ch;
 }
+
+/* Strong / shout-out */
+.shout-out {
+    border-left: 4px solid var(--accent);
+    background: rgba(186,134,86,0.06);
+    color: var(--text);
+    padding: 0.6rem 0.9rem;
+    border-radius: 8px;
+    margin: 0.8rem 0;
+    font-weight: 600;
+}
+
+/* Links */
 a {
-text-decoration: none;
+    color: var(--link);
+    text-decoration: none;
+    transition: color 160ms ease, text-decoration-color 160ms ease;
+    word-break: break-word;
+}
+a:hover, a:focus {
+    color: var(--accent);
+    text-decoration: underline;
+    outline: none;
 }
 a:active {
-color: green;
+    color: var(--accent-2);
+}
+
+/* Readme block (previously red border) */
+.readme {
+    border: 1px solid rgba(184,132,86,0.4);
+    background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.2));
+    padding: 1rem;
+}
+
+/* Code blocks and inline code */
+code, pre {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
+    color: #2b2b2b;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
 }
 code {
-white-space: pre-wrap;
-font-size: 0.7em;
-padding: 1em;
+    padding: 0.15rem 0.45rem;
+    font-size: 0.95em;
+    white-space: pre-wrap;
 }
-#title {
-padding: 0.5em;
-font-size: 3em;
+pre {
+    padding: 1rem;
+    overflow: auto;
+    font-size: 0.92em;
+    margin: 0 0 1rem 0;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+    line-height: 1.45;
 }
 
-.readme {
-    border: 3px solid red;
+/* Form elements (inputs, buttons) */
+input, textarea, button, [role="button"] {
+    font: inherit;
+    border: 1px solid var(--border);
+    background: white;
+    padding: 0.55rem 0.75rem;
+    border-radius: 8px;
+    color: var(--text);
+}
+input:focus, textarea:focus, button:focus {
+    outline: 3px solid rgba(122,138,150,0.12);
+    box-shadow: 0 4px 12px rgba(109,95,83,0.06);
 }
 
-/* stolen from darkreader static */
-html,
-body,
-:not([style*="background-color:"]):not(iframe) {
-    background-color: black !important;
+/* Borders and dividers */
+hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 1.25rem 0;
 }
-html,
-body,
-:not([style*="color:"]),
-.sr-reader *:not([class*='sr-pivot']) {
-    color: rgb(225, 253, 203) !important;
+
+/* Utility */
+.center {
+    text-align: center;
 }
-h1:not([style*="color:"]),
-h2:not([style*="color:"]),
-h3:not([style*="color:"]),
-h4:not([style*="color:"]),
-h5:not([style*="color:"]),
-h6:not([style*="color:"]) {
-    color: rgb(247, 2, 56) !important;
+.kv {
+    font-weight: 600;
+    color: var(--muted-text);
 }
-cite:not([style*="color:"]) {
-    color: rgb(30, 214, 88) !important;
+
+/* Accessibility improvements */
+:focus-visible {
+    outline: 3px solid rgba(122,138,150,0.18);
+    outline-offset: 2px;
 }
-input:not([style*="background-color:"]),
-textarea:not([style*="background-color:"]),
-button:not([style*="background-color:"]),
-[role="button"] {
-    background-color: rgb(32, 48, 64) !important;
+
+/* Responsive tweaks */
+@media (max-width: 700px) {
+    body {
+        margin: 1rem;
+        padding: 1rem;
+        font-size: 16px;
+    }
+    header, main, footer, .readme {
+        padding: 0.9rem;
+    }
+    :root {
+        --max-width: 100%;
+    }
 }
-input:not([style*="background-color:"]):hover,
-textarea:not([style*="background-color:"]):hover,
-button:not([style*="background-color:"]):hover,
-[role="button"]:hover {
-    background-color: rgb(30, 54, 78) !important;
-}
-input:not([style*="background-color:"]):active, input:not([style*="background-color:"]):focus,
-textarea:not([style*="background-color:"]):active, textarea:not([style*="background-color:"]):focus,
-button:not([style*="background-color:"]):active, button:not([style*="background-color:"]):focus,
-[role="button"]:active, [role="button"]:focus {
-    background-color: rgb(29, 56, 83) !important;
-}
-a:not([style*="color:"]) {
-    color: rgb(128, 182, 204) !important;
-}
-a:not([style*="color:"]):hover {
-    color: rgb(142, 193, 217) !important;
-}
-a:not([style*="color:"]):active, a:not([style*="color:"]):focus {
-    color: rgb(155, 203, 230) !important;
-}
-:not([style*="border-color:"]),
-::before,
-::after {
-    border-color: rgb(80, 115, 134) !important;
-}
-div:empty,
-.sr-reader *,
-.sr-backdrop {
-    background-color: rgba(16, 20, 23, 0.5) !important;
-}
-input::placeholder,
-textarea::placeholder {
-    color: rgba(167, 158, 139, 0.5) !important;
-}
-input:not([style*="background-image:"]),
-textarea:not([style*="background-image:"]) {
-    background-image: none !important;
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
 }
