@@ -1,10 +1,12 @@
-nytprof/
+# GN
+.env/
 *.sqlite3
 *.db
 *.out
-config.pl
-git/*
 *.log
-.env/
+repositories/*
+dummy-repositories/*
+# Perl
 local/
 vendor/
+nytprof/
