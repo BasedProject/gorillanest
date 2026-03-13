@@ -4,6 +4,16 @@
 Gorillanest is a Git server.
 It provides a web-frontend and an SSH interface.
 
+## Dependencies
+* Perl
+* Python (and environment as specified by `requirements.txt`)
+* Git
+* Lighttpd
+* [Hivemind](https://github.com/DarthSim/hivemind)
+
+**Optional:**
+* Scrimshaw
+
 ## Running
 ```sh
 ./gorillanest
