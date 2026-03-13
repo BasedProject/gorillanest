@@ -6,3 +6,5 @@ config.pl
 git/*
 *.log
 .env/
+local/
+vendor/

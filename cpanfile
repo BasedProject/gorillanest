@@ -1,0 +1,14 @@
+requires 'Config::INI::Reader::Ordered';
+requires 'Cwd';
+requires 'Data::Dumper';
+requires 'File::Basename';
+requires 'Git::Repository';
+requires 'IPC::Open2';
+requires 'IPC::Open3';
+requires 'Net::OpenSSH';
+requires 'Path::Tiny';
+requires 'String::Util';
+requires 'Sub::Util';
+requires 'Symbol';
+requires 'Template';
+requires 'Text::ParseWords';
