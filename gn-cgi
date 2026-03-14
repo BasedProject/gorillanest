@@ -101,6 +101,22 @@ sub serve_repository ($username, $repository) { # /$username/$repository
     serve_template("repository.tt", \%data);
 }
 
+sub serve_file ($username, $repository, $path) { # /$username/$repository/files/$path
+    my %data;
+
+    $data{username}     = $username;
+    $data{repository}   = $repository;
+    $data{h_repository} = new_repository("$GLOBAL_CONFIG->{GIT_ROOT}/$username/$repository.git");
+
+    if (!defined $data{h_repository}) {
+        serve_template("404.tt", {}, 404);
+    }
+
+    $data{content} = git_cat($data{h_repository}, $path);
+
+    serve_template("file.tt", \%data);
+}
+
 sub serve_api () {
     if ($GLOBAL_CONFIG->{DISABLE_API}) {
         $cgi->set_response_status(501)->render(
