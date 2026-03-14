@@ -4,10 +4,15 @@
 [% INCLUDE header.tt %]
   <h3>[% path %]</h3>
   <div class=file>
+  <pre>
   <code>
     [% content %]
   </code>
+  </pre>
   </div>
 [% INCLUDE footer.tt %]
+<script src="/highlight.min.js"></script>
+<link rel="stylesheet" href="/highlight-styles/default.min.css">
+<script>hljs.highlightAll();</script>
 </body>
 </html>
