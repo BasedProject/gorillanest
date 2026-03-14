@@ -1,0 +1,60 @@
+#!/usr/bin/perl
+# @BAKE ./sync-git-repository-to-remotes /home/anon/Swap/gorillanest/repositories/anon/test.git
+use strict;
+use warnings;
+use feature 'signatures';
+use feature 'say';
+use File::Basename;
+use File::Slurp 'slurp';
+use Git::Repository;
+use Cwd qw(realpath);
+
+# XXX storing credentials like this is NOT a good idea,
+#      however, for the time being, it stays
+sub fetch_credential {
+    # $ cat .env/git_credentials
+    # anon gh agvxov hkashdkahsdkhsadausaashkdhakdhsahdhkhkhk
+    my ($user, $remote) = @_;
+
+    my $gn_root = dirname(realpath($0));
+
+    for my $line (slurp($gn_root . '/.env/git_credentials')) {
+        my ($c_user, $c_remote, $cr_user, $cr_password) = split ' ', $line;
+
+        next unless $user eq $c_user && $remote eq $c_remote;
+
+        return ($cr_user, $cr_password);
+    }
+
+    return (undef, undef);
+}
+
+sub sync {
+    my ($repo, $remote, $user, $secret) = @_;
+    $ENV{'GIT_USERNAME'} = $user;
+    $ENV{'GIT_PASSWORD'} = $secret;
+    $repo->run('push', '--mirror', $remote);
+}
+
+sub attempt_to_sync {
+    my ($repo, $owner, $remote) = @_;
+
+    my $sync = eval { $repo->run('config', '--get' => "remote.$remote.sync-direction") };
+
+    return unless $sync eq 'push';
+
+    my ($c_user, $c_secret) = fetch_credential($owner, $remote);
+    return unless defined($c_user);
+
+    sync($repo, $remote, $c_user, $c_secret);
+}
+
+my $repo_path = $ARGV[0];
+my $owner = basename(dirname($repo_path));
+my $repo = Git::Repository->new(work_tree => $repo_path);
+
+my @remotes = eval { $repo->run('remote') };
+
+for my $remote (@remotes) {
+    attempt_to_sync($repo, $owner, $remote);
+}

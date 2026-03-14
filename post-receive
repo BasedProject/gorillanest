@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /home/anon/Swap/gorillanest/sync-git-repository-to-remotes "$PWD"
