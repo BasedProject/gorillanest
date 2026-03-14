@@ -104,7 +104,7 @@ sub new_readme {
     # Plain text
     for my $f ('README', 'README.txt') {
         if (does_exist_in_repository($f, $h_repository)) {
-            my $text = read_git_file($h_repository->{path}, 'HEAD', $f);
+            my $text = git_cat($h_repository->{path}, $f);
             return txt2html($text);
         }
     }
