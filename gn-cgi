@@ -131,6 +131,10 @@ sub serve_file ($username, $repository, $path) { # /$username/$repository/files/
 
     $data{content} = git_cat($data{h_repository}, $path);
 
+    if (!defined $data{content}) {
+        serve_template("404.tt", {}, 404);
+    }
+
     serve_template("file.tt", \%data);
 }
 

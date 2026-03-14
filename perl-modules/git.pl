@@ -80,8 +80,8 @@ sub new_repository {
 }
 
 sub git_cat ($h_repository, $path) {
-    my $content = $h_repository->{h_repo}->run('show', "HEAD:$path");
-    return "" if $@;
+    my $content = eval { $h_repository->{h_repo}->run('show', "HEAD:$path") };
+    return undef if $@;
     return $content;
 }
 
