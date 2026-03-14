@@ -96,7 +96,7 @@ sub serve_repository ($username, $repository) { # /$username/$repository
         serve_template("empty_repository.tt", \%data);
     }
 
-    $data{readme}       = new_readme($data{h_repository});
+    $data{readme} = new_readme($data{h_repository});
 
     serve_template("repository.tt", \%data);
 }
