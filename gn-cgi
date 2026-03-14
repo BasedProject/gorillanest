@@ -31,6 +31,22 @@ require 'perl-modules/config-frontend.pl';
 
 our $GLOBAL_CONFIG;
 
+sub serve_redirect ($target) {
+    $cgi->set_response_status(308)->render(redirect => $target);
+    exit; # XXX fcgi problem
+}
+
+sub serve_with_trailing_slash {
+    my $uri = $ENV{'REQUEST_URI'};
+    serve_redirect($uri . '/');
+}
+
+sub serve_with_no_trailing_slash {
+    my $uri = $ENV{'REQUEST_URI'};
+    chop($uri) if substr($uri, -1) eq '/';
+    serve_redirect($uri);
+}
+
 sub serve_template ($template_name, $data, $code = 200) {
     my $body;
 
@@ -241,11 +257,20 @@ sub handle_cgi ($routes, $routes_cache) {
 sub init () {
     # Regexes are slow, so we precompile them once
     my %routes = (
-        '/'                                        => \&serve_index,
-        '/explore/?'                               => \&serve_explore,
-        '/api/?'                                   => \&serve_api,
-        '/~([\w]+)/?'                              => \&serve_user,
-        '/~([\w]+)/([\w]+)/?'                      => \&serve_repository,
+        # Special
+        '/'         => \&serve_index,
+        '/explore'  => \&serve_explore,
+        '/api'      => \&serve_api,
+        '/explore/' => \&serve_with_no_trailing_slash,
+        '/api/'     => \&serve_with_no_trailing_slash,
+        # Data
+        '/~([\w]+)/'                       => \&serve_user,
+        '/~([\w]+)/([\w]+)/'               => \&serve_repository,
+        '/~([\w]+)/([\w]+)/files/([\w]+)'  => \&serve_file,
+        '/~([\w]+)'                        => \&serve_with_trailing_slash,
+        '/~([\w]+)/([\w]+)'                => \&serve_with_trailing_slash,
+        '/~([\w]+)/([\w]+)/files/([\w]+)/' => \&serve_with_no_trailing_slash,
+        # Proxy'd
         '/~([\w]+)/([\w]+)\.git([^?]*)(?:\?(.*))?' => \&serve_git_http_backend,
     );
     my %routes_cache = map { $_ => qr{^$_$} } keys %routes;
