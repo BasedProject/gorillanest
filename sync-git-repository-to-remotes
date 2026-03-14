@@ -16,6 +16,7 @@ sub fetch_credential {
     # anon gh agvxov hkashdkahsdkhsadausaashkdhakdhsahdhkhkhk
     my ($user, $remote) = @_;
 
+    # XXX we depend on the location of the script; mv will break this!!!
     my $gn_root = dirname(realpath($0));
 
     for my $line (slurp($gn_root . '/.env/git_credentials')) {

@@ -1,0 +1,60 @@
+#!/usr/bin/perl
+# XXX
+# We use git hooks, specifically post-receive to act as a push mirror.
+# These hooks are only skelingtons, they only exec the real handler.
+# They also have to get there somehow.
+# This script installs them.
+# For now it has to be run by hand, eventually the service start up should handle it.
+use strict;
+use warnings;
+use feature 'signatures';
+use File::Basename;
+use File::Slurp 'slurp', 'write_file';
+use Cwd qw(realpath);
+require 'perl-modules/config-frontend.pl';
+
+# Init
+our $GLOBAL_CONFIG;
+ConfigFrontend::read_config();
+unless ($GLOBAL_CONFIG->{'GIT_ROOT'}) {
+    print STDERR "GIT_ROOT not set, aborting.\n";
+    exit 1;
+}
+
+my $meta_line = '# GORILLANEST POST-RECEIVE-HOOK v1';
+my $post_receive_hook = join ("\n", (
+    '#!/bin/sh',
+    $meta_line,
+    # XXX we depend on the location of the script; mv will break this!!!
+    'exec ' . dirname(realpath($0)) . 'gorillanest/sync-git-repository-to-remotes "$PWD"'
+));
+
+sub write_post_receive_hook ($path) {
+    write_file($path, {perms => 0766}, $post_receive_hook);
+}
+
+# Install
+for my $repo (glob($GLOBAL_CONFIG->{'GIT_ROOT'} . '/*/*.git')) {
+    unless (-d $repo . '/hooks') {
+        print STDERR "Hooks directory missing at '$repo'. Ignoring repository.\n";
+        next;
+    }
+
+    my $post_receive_hook_path = $repo . '/hooks/post-receive';
+    if (-e $post_receive_hook_path) {
+        my $existing_post_receive_hook = slurp($post_receive_hook_path);
+        if ($post_receive_hook eq $existing_post_receive_hook) {
+            print STDERR "Already installed at '$repo'.\n";
+        } else {
+            if (index($existing_post_receive_hook, $meta_line) != -1) {
+                write_post_receive_hook($post_receive_hook_path);
+                print STDERR "Replaced mismatched GN hook at '$repo'.\n";
+            } else {
+                print STDERR "Found existing hook at '$repo'. Cowardly refusing to overwrite.\n";
+            }
+        }
+    } else {
+        write_post_receive_hook($post_receive_hook_path);
+        print STDERR "Installed at '$repo'.\n";
+    }
+}
