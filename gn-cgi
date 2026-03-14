@@ -267,10 +267,10 @@ sub init () {
         # Data
         '/~([\w]+)/'                       => \&serve_user,
         '/~([\w]+)/([\w]+)/'               => \&serve_repository,
-        '/~([\w]+)/([\w]+)/files/([\w]+)'  => \&serve_file,
+        '/~([\w]+)/([\w]+)/files/(.+)'     => \&serve_file,
         '/~([\w]+)'                        => \&serve_with_trailing_slash,
         '/~([\w]+)/([\w]+)'                => \&serve_with_trailing_slash,
-        '/~([\w]+)/([\w]+)/files/([\w]+)/' => \&serve_with_no_trailing_slash,
+        '/~([\w]+)/([\w]+)/files/(.+)/'    => \&serve_with_no_trailing_slash,
         # Proxy'd
         '/~([\w]+)/([\w]+)\.git([^?]*)(?:\?(.*))?' => \&serve_git_http_backend,
     );
