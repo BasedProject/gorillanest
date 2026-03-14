@@ -86,7 +86,7 @@ sub serve_user ($username) { # /$username/
     $data{username}     = $username;
     $data{to_link}      = \&repository_to_link;
     $data{repositories} = [
-        map { s/^$GLOBAL_CONFIG->{GIT_ROOT}\///r }
+        map { s/^$GLOBAL_CONFIG->{GIT_ROOT}\/?//r }
         @{ directories_at_level("$GLOBAL_CONFIG->{GIT_ROOT}/$username", 1) }
     ];
 
