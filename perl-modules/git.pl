@@ -16,7 +16,7 @@ sub new_repository {
     $path = realpath($path);
     return undef unless $path;
 
-    my $name = basename($path);
+    my $name = basename($path, ".git");
     my $repo;
     eval { $repo = Git::Repository->new(work_tree => $path); };
     do {

@@ -120,6 +120,7 @@ sub serve_repository ($username, $repository) { # /$username/$repository
 sub serve_file ($username, $repository, $path) { # /$username/$repository/files/$path
     my %data;
 
+    $data{path}         = $path;
     $data{username}     = $username;
     $data{repository}   = $repository;
     $data{h_repository} = new_repository("$GLOBAL_CONFIG->{GIT_ROOT}/$username/$repository.git");

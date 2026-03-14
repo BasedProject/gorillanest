@@ -1,9 +1,8 @@
 <html>
-[% title = "/${username}/${repository}" %]
 [% INCLUDE html_head.tt %]
 <body>
 [% INCLUDE header.tt %]
-  <h1 class="repository-name">[% title %]</h1>
+  <h1 class="repository-name">[% h_repository.name %]</h1>
 
   <p class="repository-clone"><b>Clone: </b><span style='user-select: all'>[% clone %]</span></p>
 
@@ -22,7 +21,7 @@
    <h3>Files:</h3>
    <ul>
      [% FOR i IN h_repository.files %]
-       <li>[% i %]</li>
+       <li><a href="files/[% i %]">[% i %]</a></li>
      [% END %]
    </ul>
   </div>

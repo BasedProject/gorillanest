@@ -1,0 +1,13 @@
+<html>
+[% INCLUDE html_head.tt %]
+<body>
+[% INCLUDE header.tt %]
+  <h3>[% path %]</h3>
+  <div class=file>
+  <code>
+    [% content %]
+  </code>
+  </div>
+[% INCLUDE footer.tt %]
+</body>
+</html>
