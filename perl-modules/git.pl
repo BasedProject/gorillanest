@@ -85,10 +85,8 @@ sub git_cat ($h_repository, $path) {
     return $content;
 }
 
-sub does_exist_in_repository {
-    my ($path, $h_repository) = @_;
+sub does_exist_in_repository ($path, $h_repository) {
     my $files = $h_repository->{files};
-
     return scalar grep { $_ eq $path } @$files;
 }
 
@@ -98,9 +96,7 @@ sub txt2html ($txt) {
     return "<pre>$txt</pre>";
 }
 
-sub new_readme {
-    my ($h_repository) = @_;
-
+sub new_readme ($h_repository) {
     # Plain text
     for my $f ('README', 'README.txt') {
         if (does_exist_in_repository($f, $h_repository)) {
