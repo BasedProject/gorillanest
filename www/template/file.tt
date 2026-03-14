@@ -4,11 +4,7 @@
 [% INCLUDE header.tt %]
   <h3>[% path %]</h3>
   <div class=file>
-  <pre>
-  <code>
-    [% content %]
-  </code>
-  </pre>
+    <pre><code>[% content %]</code></pre>
   </div>
 [% INCLUDE footer.tt %]
 <script src="/highlight.min.js"></script>
