@@ -13,6 +13,8 @@ use File::Slurp 'slurp', 'write_file';
 use Cwd qw(realpath);
 require 'perl-modules/config-frontend.pl';
 
+my $FORCE = defined($ARGV[0]) && $ARGV[0] eq '--force';
+
 # Init
 our $GLOBAL_CONFIG;
 ConfigFrontend::read_config();
@@ -46,7 +48,7 @@ for my $repo (glob($GLOBAL_CONFIG->{'GIT_ROOT'} . '/*/*.git')) {
         if ($post_receive_hook eq $existing_post_receive_hook) {
             print STDERR "Already installed at '$repo'.\n";
         } else {
-            if (index($existing_post_receive_hook, $meta_line) != -1) {
+            if ($FORCE || index($existing_post_receive_hook, $meta_line) != -1) {
                 write_post_receive_hook($post_receive_hook_path);
                 print STDERR "Replaced mismatched GN hook at '$repo'.\n";
             } else {
