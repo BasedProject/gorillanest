@@ -1,0 +1,11 @@
+#!/sbin/openrc-run
+description="Gorillanest git server"
+supervisor=supervise-daemon
+
+required_dirs="/home/gorillanest/gorillanest/" # XXX
+
+directory="/home/gorillanest/gorillanest/"
+command="sh"
+command_args="-c './gorillanest'"
+#command_args="-c './gorillanest 2>&1 | logger -t gorillanest'"
+command_user="gorillanest"
