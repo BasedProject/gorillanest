@@ -35,14 +35,20 @@ Gorillanest aims to sit in the middle.
 The target audience is based internet schitzos.
 
 ## Dependencies
-* Perl (and environment as specified by `cpanfile`)
-* Python (and environment as specified by `requirements.txt`)
-* Git
-* Lighttpd
+**Handled by `./boostrap.sh`:**
+* Perl environment as specified by `cpanfile`)
+* Python environment as specified by `requirements.txt`
 * [Hivemind](https://github.com/DarthSim/hivemind)
 
 **Optional:**
 * Scrimshaw
+
+**Must be hand installed:**
+* Perl, Carton
+* Python
+* Go
+* Git
+* Lighttpd
 
 ## Running
 ```sh
