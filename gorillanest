@@ -1,4 +1,5 @@
 #!/bin/sh
 . venv/bin/activate
 export PERL5LIB="local/lib/perl5/:$PERL5LIB"
+export PATH="$PATH:$GOPATH/bin"
 hivemind --root $(realpath .) service/gorillanest.procfile
