@@ -17,7 +17,6 @@ sub read_config {
         SOCKET_FILE
         SOCKET_MAX_CONNECTIONS
         TEMPLATE_ROOT
-        HTTPS_ONLY
         DISABLE_API
         USE_CGI
     );

@@ -61,6 +61,16 @@ Gorillanest is internally made up of multiple services.
 Each section references a service.
 Each daemon validates the section(s) it reads.
 
+What `config.ini` does not address is the server setup.
+Gorillanest chooses not to be responsible for
+abstracting N server configurations schemas into a single interface,
+because our efforts are much better spent elsewhere.
+What we do however, is support both CGI and FCGI,
+and lighttpd configuration such that
+the service can be ran out of the box.
+The system administrator is assumed to be responsible
+for figuring out the rest.
+
 ## Users
 A registered user is a user that can login.
 
