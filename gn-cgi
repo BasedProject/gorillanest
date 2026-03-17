@@ -222,11 +222,9 @@ sub serve_git_http_backend ($user, $repo, $tail, $param) {
     #$ENV{GIT_TRACE}        = "2";
     #$ENV{GIT_CURL_VERBOSE} = "1";
 
-    $ENV{PATH} = "$ENV{PATH}:/home/anon/Swap/git/"; # XXX
-
     # XXX auth check
 
-    exec "/home/anon/Swap/git/git-http-backend"; # XXX exec is a problem for fcgi
+    exec "git-http-backend"; # XXX exec is a problem for fcgi
 }
 
 # ---
