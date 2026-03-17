@@ -53,5 +53,6 @@
   </div>
   <script type="module" src="/relative-time-element.bundle.js"></script>
 [% INCLUDE footer.tt %]
+[% INCLUDE "enable-highlighting.tt" %]
 </body>
 </html>

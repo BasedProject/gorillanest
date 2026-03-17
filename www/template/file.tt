@@ -7,8 +7,6 @@
     <pre><code>[% content %]</code></pre>
   </div>
 [% INCLUDE footer.tt %]
-<script src="/highlight.min.js"></script>
-<link rel="stylesheet" href="/highlight-styles/default.min.css">
-<script>hljs.highlightAll();</script>
+[% INCLUDE "enable-highlighting.tt" %]
 </body>
 </html>
