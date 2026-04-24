@@ -90,6 +90,10 @@ sub does_exist_in_repository ($path, $h_repository) {
     return scalar grep { $_ eq $path } @$files;
 }
 
+# XXX
+#  bad architecture, git has nothing to do with html
+#  solve it with git_get_readme which returns a path,
+#  combine it with git_cat and move all the logic upward or into a new module
 sub txt2html ($txt) {
     $txt =~ s/</&lt;/g;
     $txt =~ s/>/&gt;/g;
