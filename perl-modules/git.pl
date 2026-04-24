@@ -122,14 +122,21 @@ sub new_readme ($h_repository) {
             return '<h2>!!! MD -> HTML CONVERTER MISSING; USING PLAIN TEXT !!!</h2>' . $text;
         };
 
-        print $in $text;
-        close $in;
+        local $SIG{PIPE} = 'IGNORE';
+
+        my $ok = print {$in} $text;
+        close $in or $ok = 0;
 
         local $/;
         my $html = <$out>;
         close $out;
 
         waitpid($pid, 0);
+
+        if (!$ok || $? != 0) {
+            return '<h2>!!! README CONSTRUCTING SUBPROCESS EXITED WITH CATASTROPHIC ERROR !!!<br>'
+                 . ' Please consult the server logs for more information.';
+        }
 
         return $html;
     }
