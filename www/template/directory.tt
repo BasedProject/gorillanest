@@ -1,0 +1,18 @@
+<html>
+[% INCLUDE html_head.tt %]
+<body>
+[% INCLUDE header.tt %]
+  <h3>[% path %]</h3>
+  <ul>
+  [% FOREACH file IN files %]
+    <li>
+      <a href="/~[% username %]/[% repository %]/files/[% file %]">
+      [% file %]
+      </a>
+    </li>
+  [% END %]
+  </ul>
+[% INCLUDE footer.tt %]
+[% INCLUDE "enable-highlighting.tt" %]
+</body>
+</html>

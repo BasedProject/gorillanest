@@ -85,9 +85,25 @@ sub git_cat ($h_repository, $path) {
     return $content;
 }
 
+# XXX argument ordering
 sub does_exist_in_repository ($path, $h_repository) {
+    # XXX not recursive
     my $files = $h_repository->{files};
     return scalar grep { $_ eq $path } @$files;
+}
+
+sub is_tree_in_repository ($path, $h_repository) {
+    chop($path) if substr($path, -1) eq '/';
+
+    my $objecttype = $h_repository->{h_repo}->run(
+        'ls-tree',
+        '--format=\'%(objecttype)\'',
+        'HEAD',
+        '--',
+        $path
+    );
+    
+    return $objecttype eq "'tree'";
 }
 
 # XXX
@@ -98,6 +114,16 @@ sub txt2html ($txt) {
     $txt =~ s/</&lt;/g;
     $txt =~ s/>/&gt;/g;
     return "<pre>$txt</pre>";
+}
+
+sub git_files_from($path, $h_repository) {
+    return $h_repository->{h_repo}->run(
+        'ls-tree',
+        '--name-only',
+        'HEAD',
+        '--',
+        $path . '/'
+    );
 }
 
 sub new_readme ($h_repository) {
