@@ -50,9 +50,25 @@ The target audience is based internet schitzos.
 * Git
 * Lighttpd
 
-## Running
+## Quick start
+Start by pulling in the dependencies that must be hand installed
+as specified by the above section.
+
+Run:
+```sh
+./bootstrap.sh
+```
+
+Your installation is done, you can start Gorillanest:
 ```sh
 ./gorillanest
+```
+
+You won't have any repositories yet.
+For a test drive,
+you may find it convenient to use the default dummy repositories:
+```sh
+cp -r dummy-repositories/anon/ repositories/
 ```
 
 ## Configuration
