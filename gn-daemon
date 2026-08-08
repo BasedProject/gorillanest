@@ -77,6 +77,11 @@ def ensure_host_key(path: str) -> str:
 
 def validate_privileged_client_process(cmd : str) -> [str]:
     argv = shlex.split(cmd)
+
+    if '/' in argv[0]:
+        log.warning(f"User tried funny business with '{argv[0]}'.")
+        raise Exception("Stop fucking with my server!")
+
     argv[0] = "PATH/daemon/" + argv[0]
 
     return argv
