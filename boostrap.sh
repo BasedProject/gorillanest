@@ -19,3 +19,8 @@ hail_xolatile
 export GOPATH=$(realpath .)/gopath
 go install github.com/DarthSim/hivemind@latest
 hail_xolatile
+
+# dummy-repositories/
+cd dummy-repositories/
+./clone-dummy-repositories.sh
+cd ..
