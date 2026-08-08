@@ -12,3 +12,6 @@ requires 'Sub::Util';
 requires 'Symbol';
 requires 'Template';
 requires 'Text::ParseWords';
+requires 'Linux::Inotify2';
+requires 'DBI';
+requires 'DBD::SQLite';

@@ -6,6 +6,7 @@
 *.log
 repositories/*
 dummy-repositories/*
+user-permission-cache.sqlite*
 # Python
 venv/
 # Perl
