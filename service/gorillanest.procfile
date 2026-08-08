@@ -1,2 +1,3 @@
 web: gn-web
 ssh: gn-daemon
+prm-cch: user-permission-cache.pl
