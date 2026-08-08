@@ -1,34 +1,34 @@
 #!/usr/bin/perl
-# XXX
 # We use git hooks, specifically post-receive to act as a push mirror.
 # These hooks are only skelingtons, they only exec the real handler.
 # They also have to get there somehow.
 # This script installs them.
 # For now it has to be run by hand, eventually the service start up should handle it.
+# Note that the hooks depend on the installation directory of GN as of running this script.
 use strict;
 use warnings;
 use feature 'signatures';
 use File::Basename;
 use File::Slurp 'slurp', 'write_file';
 use Cwd qw(realpath);
-require 'perl-modules/config-frontend.pl';
+use Getopt::Long;
 
-my $FORCE = defined($ARGV[0]) && $ARGV[0] eq '--force';
+my $force = 0;
+my $git_root;
+
+GetOptions(
+    'force'      => \$force,
+    'git-root=s' => \$git_root,
+) or die "Usage: $0 [--force] --git-root PATH\n";
+
+die "Error: --git-root is required\n" unless defined $git_root;
 
 # Init
-our $GLOBAL_CONFIG;
-ConfigFrontend::read_config();
-unless ($GLOBAL_CONFIG->{'GIT_ROOT'}) {
-    print STDERR "GIT_ROOT not set, aborting.\n";
-    exit 1;
-}
-
-my $meta_line = '# GORILLANEST POST-RECEIVE-HOOK v1';
+my $meta_line = '# GORILLANEST POST-RECEIVE-HOOK v2';
 my $post_receive_hook = join ("\n", (
     '#!/bin/sh',
     $meta_line,
-    # XXX we depend on the location of the script; mv will break this!!!
-    'exec ' . dirname(realpath($0)) . 'gorillanest/sync-git-repository-to-remotes "$PWD"'
+    'exec ' . dirname(realpath($0)) . 'gorillanest/utility/sync-git-repository-to-remotes "$PWD"'
 ));
 
 sub write_post_receive_hook ($path) {
@@ -36,7 +36,7 @@ sub write_post_receive_hook ($path) {
 }
 
 # Install
-for my $repo (glob($GLOBAL_CONFIG->{'GIT_ROOT'} . '/*/*.git')) {
+for my $repo (glob($git_root . '/*/*.git')) {
     unless (-d $repo . '/hooks') {
         print STDERR "Hooks directory missing at '$repo'. Ignoring repository.\n";
         next;
@@ -48,7 +48,7 @@ for my $repo (glob($GLOBAL_CONFIG->{'GIT_ROOT'} . '/*/*.git')) {
         if ($post_receive_hook eq $existing_post_receive_hook) {
             print STDERR "Already installed at '$repo'.\n";
         } else {
-            if ($FORCE || index($existing_post_receive_hook, $meta_line) != -1) {
+            if ($force || index($existing_post_receive_hook, $meta_line) != -1) {
                 write_post_receive_hook($post_receive_hook_path);
                 print STDERR "Replaced mismatched GN hook at '$repo'.\n";
             } else {

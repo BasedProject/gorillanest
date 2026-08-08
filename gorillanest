@@ -8,4 +8,6 @@ export PERL5LIB=".:local/lib/perl5/:$PERL5LIB"
 # Go
 export PATH="gopath/bin/:$PATH"
 # ---
+gn-init
+# ---
 hivemind --root $(realpath .) service/gorillanest.procfile

@@ -1,0 +1,12 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use feature 'signatures';
+require 'perl-modules/config-frontend.pl';
+
+our $GLOBAL_CONFIG;
+ConfigFrontend::read_config();
+
+die "GIT_ROOT not set" unless defined $GLOBAL_CONFIG->{'GIT_ROOT'};
+
+system('utility/install-sync-hooks', '--git-root', $GLOBAL_CONFIG->{'GIT_ROOT'});
