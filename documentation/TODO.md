@@ -6,4 +6,3 @@
 * cooperation
 * the ini parser Perl uses, only supports ; comments
 * if a repository cannot be read due to permissions, a more helpful message should be provided than "404 its so fucking over"
-* repository names can only contain word characters, which is a feature and not a bug; however, if someone hand inserts a repository with non-word chars in its names, the 404 is confusing and a footgun
