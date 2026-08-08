@@ -1,0 +1,4 @@
+#!/bin/sh
+
+. venv/bin/activate
+linkchecker -f test/linkcheckerrc http://127.0.0.1:5050
