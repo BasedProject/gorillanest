@@ -4,6 +4,7 @@ use warnings;
 use feature 'signatures';
 use Path::Tiny;
 require 'perl-modules/config-frontend.pl';
+require 'perl-modules/sanity-check.pl';
 
 our $GLOBAL_CONFIG;
 ConfigFrontend::read_config();
@@ -12,6 +13,7 @@ sub my_warn($msg) {
     print STDERR "\033[33;1mWARNING:\033[0m $msg\n";
 }
 
+# XXX checks have been extracted to sanity-check.pl, use those functions!
 sub warn_of_invalid_repository_names() {
     my $PS = "Gorillanest will be unable to interact with it.";
     my $word_chars = qr/^[-\w]+$/;  # NOTE: corresponds exactly to \w in gn-cgi
