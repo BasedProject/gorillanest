@@ -10,4 +10,6 @@ export PATH="gopath/bin/:$PATH"
 # ---
 gn-init
 # ---
+gn-check
+# ---
 hivemind --root $(realpath .) service/gorillanest.procfile

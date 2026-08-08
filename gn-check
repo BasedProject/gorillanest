@@ -1,0 +1,63 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use feature 'signatures';
+use Path::Tiny;
+require 'perl-modules/config-frontend.pl';
+
+our $GLOBAL_CONFIG;
+ConfigFrontend::read_config();
+
+sub my_warn($msg) {
+    print STDERR "\033[33;1mWARNING:\033[0m $msg\n";
+}
+
+sub warn_of_invalid_repository_names() {
+    my $PS = "Gorillanest will be unable to interact with it.";
+    my $word_chars = qr/^[-\w]+$/;  # NOTE: corresponds exactly to \w in gn-cgi
+
+    my $git_root = path($GLOBAL_CONFIG->{'GIT_ROOT'});
+    my @user_homes;
+
+    # Validate user home directories
+    for my $i ($git_root->children) {
+        my $entry = path($i);
+        my $dir   = $entry->basename;
+
+        unless ($entry->is_dir) {
+            my_warn("Non-directory '$dir' encountered where a user home was expected.");
+            next;
+        }
+
+        if ($dir =~ $word_chars) {
+            push @user_homes, $entry;
+        } else {
+            my $bad_chars = join '', ($dir =~ /([^-\w])/g);
+            my_warn("Invalid user directory name '$dir' (bad chars: '$bad_chars'). $PS");
+        }
+    }
+
+    # Validate user repository directories
+    for my $user_home (@user_homes) {
+        for my $repo_entry ($user_home->children) {
+            my $repo = $repo_entry->basename;
+
+            unless ($repo_entry->is_dir) {
+                my_warn("Non-directory '" . $repo_entry->stringify . "' encountered where a repository was expected.");
+                next;
+            }
+
+            unless ($repo =~ /\.git$/) {
+                my_warn("Repository directory '$repo' has no '.git' suffix. $PS");
+            }
+
+            (my $repo_name = $repo) =~ s/\.git$//;
+            unless ($repo_name =~ $word_chars) {
+                my $bad_chars = join '', ($repo =~ /([^-\w])/g);
+                my_warn("Invalid repository name '" . $repo_entry->stringify . "' (bad chars: '$bad_chars'; the '.git' suffix is ignored). $PS");
+            }
+        }
+    }
+}
+
+warn_of_invalid_repository_names();
