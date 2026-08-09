@@ -1,3 +1,4 @@
 configObj
 asyncssh
+bwrap
 linkchecker

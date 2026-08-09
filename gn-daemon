@@ -9,8 +9,11 @@ import logging
 import functools
 import traceback
 import shlex
+import sqlite3
+import tempfile
 import asyncio
 import asyncssh
+from shutil import which
 from configobj import ConfigObj
 from sys import exit
 from os import environ
@@ -23,6 +26,9 @@ GLOBAL_CONFIG = {
     'DISABLE_AUTHENTICATOR' : None,
 }
 AUTHORIZED_KEYS = None
+
+permission_cache_path = 'user-permission-cache.sqlite'
+permission_cache_db = None
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("gn-daemon")
@@ -64,6 +70,83 @@ class GNServer(asyncssh.SSHServer):
     def validate_public_key(self, username, key):
         return validate_key(username, key)
 # ---
+
+def connect_to_permission_cache():
+    global permission_cache_db
+    if permission_cache_db is not None:
+        return permission_cache_db
+
+    db_path = permission_cache_path
+    uri = f"file:{db_path}?mode=ro"
+    try:
+        conn = sqlite3.connect(uri, uri=True, check_same_thread=False)
+        conn.execute("PRAGMA query_only = 1")
+    except sqlite3.OperationalError as e:
+        log.error("Unable to open permission cache '%s': %s", db_path, e)
+        raise
+
+    permission_cache_db = conn
+    return permission_cache_db
+
+def get_writable_repositories(user: str) -> [str]:
+    db = connect_to_permission_cache()
+    cur = db.execute(
+        "SELECT repo_key FROM permissions WHERE username = ? ORDER BY repo_key",
+        (user,)
+    )
+    return [row[0] for row in cur.fetchall()]
+
+def writable_repos_to_bwrap_bind_args(git_root: str, repo_keys: [str]) -> [str]:
+    args = []
+    for repo_key in repo_keys:
+        host_path = os.path.join(git_root, repo_key)
+        args += ["--bind", host_path, host_path]
+    return args
+
+def write_bwrap_args_file(args: [str]):
+    # using "bwrap-args" is not a race condition
+    fd = os.memfd_create("bwrap-args")
+    data = b'\0'.join(a.encode() for a in args) + b'\0' if args else b''
+    os.writev(fd, [data])
+    os.lseek(fd, 0, os.SEEK_SET)
+    return os.fdopen(fd, "rb")
+
+def base_bwrap_sandbox_args(cwd: str) -> [str]:
+    args = []
+    args += ["--proc", "/proc"]
+    args += ["--dev", "/dev"]
+    args += ["--ro-bind", cwd, cwd]
+
+    extras_system_paths = (
+        "/bin/",
+        "/usr/bin/",
+        "/lib/",
+        "/lib64/",
+        "/usr/lib/",
+        "/usr/lib64/"
+    )
+    for system_path in extras_system_paths:
+        args += ["--ro-bind", system_path, system_path]
+
+    return args
+
+def bwrap_argv_for_user(user: str, program_argv: [str]) -> ([str], object):
+    git_root = GLOBAL_CONFIG['GIT_ROOT']
+
+    bind_args = writable_repos_to_bwrap_bind_args(
+        git_root, get_writable_repositories(user)
+    )
+    args_fd_file = write_bwrap_args_file(bind_args)
+
+    argv = [
+        which("bwrap"),
+        *base_bwrap_sandbox_args(os.getcwd()),
+        "--ro-bind", git_root, git_root,
+        "--args", str(args_fd_file.fileno()),
+        "--",
+        *program_argv,
+    ]
+    return argv, args_fd_file
 
 def ensure_host_key(path: str) -> str:
     if os.path.exists(path): return path
@@ -118,22 +201,29 @@ async def gn_process(proc : asyncssh.SSHServerProcess):
             writer.write(data)
             await writer.drain()
 
+    username = proc.get_extra_info('username')
+
     env = environ.copy()
     env['PATH']     = 'PATH/daemon/'
-    env['USERNAME'] = proc.get_extra_info('username')
+    env['USERNAME'] = username
     env['GIT_ROOT'] = GLOBAL_CONFIG['GIT_ROOT']
 
-    if proc.get_extra_info('username') == 'git':
+    if username == 'git':
         validate_client_process = validate_guest_client_process
     else:
         validate_client_process = validate_privileged_client_process
 
+    argv, args_fd_file = bwrap_argv_for_user(
+        username, validate_client_process(cmd)
+    )
+
     sub = await asyncio.create_subprocess_exec(
-        *validate_client_process(cmd),
+        *argv,
         stdin=asyncio.subprocess.PIPE,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
-        env=env
+        env=env,
+        pass_fds=(args_fd_file.fileno(),)
     )
 
     await asyncio.gather(
