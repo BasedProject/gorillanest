@@ -31,4 +31,4 @@ if ( -d "$repo_path" ) {
     eecho "Repository '$repo_path' already exists!";
 }
 
-system('git', 'init', '--bare', $repo_path) == 0 or eecho "Failed to initialize bare repo";
+system('/usr/bin/git', 'init', '--bare', $repo_path) == 0 or eecho "Failed to initialize bare repo";

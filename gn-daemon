@@ -123,7 +123,8 @@ def base_bwrap_sandbox_args(cwd: str) -> [str]:
         "/lib/",
         "/lib64/",
         "/usr/lib/",
-        "/usr/lib64/"
+        "/usr/lib64/",
+        "/usr/libexec/",
     )
     for system_path in extras_system_paths:
         args += ["--ro-bind", system_path, system_path]
