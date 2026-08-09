@@ -8,20 +8,23 @@ and it refers to the project as a whole.
 * files and SQLite for storage
 
 ## Project structure
-| Path                 | Description |
-| :------------------- | :---------- |
-| gorillanest          | Run all subservices |
-| config.default.ini   | Default configuration, don't edit this, copy it to ./config.ini |
-| config.ini           | (Nonexistant.) Configuration overriding ./config.default.ini |
-| repositories/        | Default git repository storage path |
-| dummy\_repositories/ | Mock repositories/ contents for testing |
-| www/                 | HTTP served documents | 
-| service/             | Service files {lighttpd, nginx, cron} |
-| perl-module/         | Perl dependencies |
-| PATH/                | Custom scripts and wrappers exposed to the daemons | 
-| gn-cgi               | Web service script |
-| gn-fcgi              | Fast cgi wrapper for gn-cli |
-| gn-daemon            | Custom SSH daemon handling various repo and site management requests |
+| Path                     | Description |
+| :----------------------- | :---------- |
+| gorillanest              | Run all subservices |
+| config.default.ini       | Default configuration, don't edit this, copy it to ./config.ini |
+| config.ini               | (Nonexistant.) Configuration overriding ./config.default.ini |
+| repositories/            | Default git repository storage path |
+| dummy\_repositories/     | Mock repositories/ contents for testing |
+| www/                     | HTTP served documents | 
+| service/                 | Service files {lighttpd, nginx, cron} |
+| perl-module/             | Perl dependencies |
+| PATH/                    | Custom scripts and wrappers exposed to the daemons | 
+| gn-cgi                   | Web service script |
+| gn-fcgi                  | Fast cgi wrapper for gn-cli |
+| gn-daemon                | Custom SSH daemon handling various repo and site management requests |
+| gn-init                  | Script that ensures tentative resources are bootstrapped. E.g. git hooks. Invoked by /gorillanest. |
+| gn-check                 | Sanity check. Warns or errors out depending on the severity. Exists to provide sensible feedback to the user and early on. Invoked by /gorillanest. |
+| user-permission-cache.pl | Creates a temporary database of what repositories each user can access. gn-daemon queries that through sqlite. |
 
 ## Git config extensions
 Git config allows for storing arbitrary data.
