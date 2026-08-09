@@ -139,10 +139,13 @@ def bwrap_argv_for_user(user: str, program_argv: [str]) -> ([str], object):
     )
     args_fd_file = write_bwrap_args_file(bind_args)
 
+    user_path = os.path.realpath(os.path.join(git_root, user))
+
     argv = [
         which("bwrap"),
         *base_bwrap_sandbox_args(os.getcwd()),
         "--ro-bind", git_root, git_root,
+        "--bind", user_path, user_path,
         "--args", str(args_fd_file.fileno()),
         "--",
         *program_argv,
@@ -217,6 +220,10 @@ async def gn_process(proc : asyncssh.SSHServerProcess):
     argv, args_fd_file = bwrap_argv_for_user(
         username, validate_client_process(cmd)
     )
+
+    #args_fd_file.seek(0)
+    #log.info(f"Executing '{argv}'; Args-file is '{args_fd_file.read()}'")
+    #args_fd_file.seek(0)
 
     sub = await asyncio.create_subprocess_exec(
         *argv,
