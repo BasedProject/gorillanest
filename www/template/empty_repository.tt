@@ -9,7 +9,11 @@
 
   <div>
     <p>Quick setup - if youve done this kind of thing before</p>
-    <p>Clone: <span style='user-select: all'>[% clone %]</span></p>
+    <p class="repository-clone">
+      <b>Clone: </b></br>
+      <span style='user-select: all'>[% clone %]</span></br>
+      <span style='user-select: all'>[% clone_ssh %]</span></br>
+    </p>
   </div>
 
   <div>

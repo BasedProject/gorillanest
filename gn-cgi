@@ -96,6 +96,8 @@ sub serve_user ($username) { # /$username/
 sub serve_repository ($username, $repository) { # /$username/$repository
     my %data;
 
+    my $git_root = $GLOBAL_CONFIG->{GIT_ROOT};
+
     my $host     = $cgi->server_name;
     my $port     = $cgi->server_port;
     my $protocol = $ENV{REQUEST_SCHEME};
@@ -103,7 +105,9 @@ sub serve_repository ($username, $repository) { # /$username/$repository
     $data{username}     = $username;
     $data{repository}   = $repository;
     $data{clone}        = "$protocol://$host:$port/~$username/$repository.git";
-    $data{h_repository} = new_repository("$GLOBAL_CONFIG->{GIT_ROOT}/$username/$repository.git");
+    # XXX i hard coded the ssh port becaues the ssh section of the config is not read at all
+    $data{clone_ssh}    = "ssh://git\@$host:2222/$git_root/$username/$repository.git";
+    $data{h_repository} = new_repository("$git_root/$username/$repository.git");
 
     if (!defined $data{h_repository}) {
         serve_template("404.tt", {}, 404);

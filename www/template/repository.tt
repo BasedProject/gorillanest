@@ -4,7 +4,11 @@
 [% INCLUDE header.tt %]
   <h1 class="repository-name">[% h_repository.name %]</h1>
 
-  <p class="repository-clone"><b>Clone: </b><span style='user-select: all'>[% clone %]</span></p>
+  <p class="repository-clone">
+    <b>Clone: </b></br>
+    <span style='user-select: all'>[% clone %]</span></br>
+    <span style='user-select: all'>[% clone_ssh %]</span></br>
+  </p>
 
   <p class="repository-description">[% h_repository.description %]</p>
 
