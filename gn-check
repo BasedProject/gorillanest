@@ -62,4 +62,69 @@ sub warn_of_invalid_repository_names() {
     }
 }
 
+sub warn_of_inaccessable_repository_files() {
+    my $git_root      = $GLOBAL_CONFIG->{'GIT_ROOT'};
+    my $git_root_iter = path($git_root)->iterator({
+        recurse => 1,
+        follow_symlinks => 0,
+    });
+
+    my @groups = split ' ', `id -G`;
+    my %groups = map { $_ => 1 } @groups;
+
+    while (my $entry = $git_root_iter->()) {
+        my @stat = stat($entry->stringify);
+
+        # Git objects are read-only by design.
+        if ($entry->parent->parent->basename eq 'objects') {
+            next;
+        }
+
+        unless (@stat) {
+            my_warn("Unable to stat '" . $entry->stringify . "': $!");
+            next;
+        }
+
+        my ($mode, $uid, $gid) = @stat[2, 4, 5];
+
+        my ($read_bit, $write_bit, $execute_bit);
+
+        if ($uid == $<) {
+            ($read_bit, $write_bit, $execute_bit) = (0400, 0200, 0100);
+        } elsif ($groups{$gid}) {
+            ($read_bit, $write_bit, $execute_bit) = (0040, 0020, 0010);
+        } else {
+            ($read_bit, $write_bit, $execute_bit) = (0004, 0002, 0001);
+        }
+
+        my @missing;
+
+        push @missing, 'read'  unless $mode & $read_bit;
+        push @missing, 'write' unless $mode & $write_bit;
+
+        # Directories need execute permission to be traversable.
+        push @missing, 'execute'
+            if $entry->is_dir && !($mode & $execute_bit);
+
+        next unless @missing;
+
+        my $path = $entry->stringify;
+        my $message =
+            "Current user lacks " .
+            join(' and ', @missing) .
+            " permission" .
+            (@missing == 1 ? '' : 's') .
+            " on '$path'";
+
+        unless ($uid == $<) {
+            my $owner = getpwuid($uid);
+            $owner = defined($owner) ? $owner : "UID $uid";
+            $message .= " (owned by $owner)";
+        }
+
+        my_warn("$message.");
+    }
+}
+
+warn_of_inaccessable_repository_files();
 warn_of_invalid_repository_names();
