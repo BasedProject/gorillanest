@@ -1,0 +1,163 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use feature 'signatures';
+use File::Slurp qw(read_file);
+use Path::Tiny qw(path);
+use Text::ParseWords qw(shellwords);
+
+my $root = path(__FILE__)->absolute->parent->parent->realpath;
+chdir "$root" or die "Unable to enter project root '$root': $!\n";
+
+my @perl_scripts;
+my @python_scripts;
+my @shell_scripts;
+my %first_lines;
+my @directory_whitelist = qw(PATH perl-modules service test utility);
+$| = 1;
+
+sub colorize($color, $text) {
+    return $text unless -t STDOUT;
+
+    my %codes = (
+        cyan  => "\e[36m",
+        green => "\e[32m",
+        red   => "\e[31m",
+    );
+
+    return $codes{$color} . $text . "\e[0m";
+}
+
+sub script_interpreter($first_line) {
+    return '' unless $first_line =~ /\A#!/;
+
+    my @parts = shellwords($first_line =~ s/\A#!\s*//r);
+    return '' unless @parts;
+
+    my $interpreter = path(shift @parts)->basename;
+    if ($interpreter eq 'env') {
+        shift @parts while @parts && $parts[0] =~ /\A-/;
+        $interpreter = @parts ? path(shift @parts)->basename : '';
+    }
+
+    return $interpreter;
+}
+
+sub is_perl_script($script_path, $first_line) {
+    return $script_path->basename =~ /\.pl\z/
+        || script_interpreter($first_line) =~ /\Aperl(?:\d+(?:\.\d+)*)?\z/;
+}
+
+sub is_python_script($script_path, $first_line) {
+    return $script_path->basename =~ /\.py\z/
+        || script_interpreter($first_line) =~ /\Apython(?:\d+(?:\.\d+)*)?\z/;
+}
+
+sub is_shell_script($script_path, $first_line) {
+    return $script_path->basename =~ /\.sh\z/
+        || script_interpreter($first_line) =~ /\A(?:ash|bash|dash|ksh|openrc-run|sh|zsh)\z/;
+}
+
+sub collect_script($script_path) {
+    return if -l "$script_path";
+    return unless $script_path->is_file;
+    return unless $script_path->basename =~ /\.(?:pl|py|sh)\z/ || -x "$script_path";
+
+    my $contents = read_file("$script_path");
+    my ($first_line) = $contents =~ /\A([^\r\n]*)/;
+    $first_line //= '';
+    $first_lines{"$script_path"} = $first_line;
+
+    if (is_perl_script($script_path, $first_line)) {
+        push @perl_scripts, $script_path;
+    } elsif (is_python_script($script_path, $first_line)) {
+        push @python_scripts, $script_path;
+    } elsif (is_shell_script($script_path, $first_line)) {
+        push @shell_scripts, $script_path;
+    }
+}
+
+sub collect_scripts($directory) {
+    return unless $directory->is_dir;
+
+    for my $entry (sort map { path($_) } $directory->children) {
+        next if -l "$entry";
+        if ($entry->is_dir) {
+            collect_scripts($entry);
+        } else {
+            collect_script($entry);
+        }
+    }
+}
+
+sub syntax_check_perl_script($script_path) {
+    return system($^X, '-I.', '-c', "$script_path") == 0;
+}
+
+sub syntax_check_python_script($script_path) {
+    return system(
+        'python3', '-c',
+        'import ast, pathlib, sys; ast.parse(pathlib.Path(sys.argv[1]).read_text(), filename=sys.argv[1])',
+        "$script_path",
+    ) == 0;
+}
+
+sub syntax_check_shell_script($script_path, $first_line) {
+    my $interpreter = script_interpreter($first_line);
+    my $shell = $interpreter =~ /\A(?:bash|ksh|zsh)\z/ ? $interpreter : 'sh';
+
+    return system($shell, '-n', "$script_path") == 0;
+}
+
+for my $entry (sort map { path($_) } $root->children) {
+    next if -l "$entry" || !$entry->is_file;
+    collect_script($entry);
+}
+
+for my $directory_name (@directory_whitelist) {
+    collect_scripts($root->child($directory_name));
+}
+
+my $failures = 0;
+my $total_scripts = 0;
+for my $script_set (
+    [Perl => \@perl_scripts, \&syntax_check_perl_script, 0],
+    [Python => \@python_scripts, \&syntax_check_python_script, 0],
+    [Shell => \@shell_scripts, \&syntax_check_shell_script, 1],
+) {
+    my ($language, $scripts, $syntax_check, $needs_first_line) = @$script_set;
+    my $set_failures = 0;
+    my $set_passes = 0;
+
+    for my $script_path (@$scripts) {
+        my $script_type = lc $language;
+        print colorize('cyan', "Checking $script_type $script_path ... ");
+        my $passed = $needs_first_line
+            ? $syntax_check->($script_path, $first_lines{"$script_path"})
+            : $syntax_check->($script_path);
+        if ($passed) {
+            ++$set_passes;
+            print colorize('green', "PASS\n");
+        } else {
+            ++$set_failures;
+            print colorize('red', "FAIL\n");
+        }
+    }
+
+    $failures += $set_failures;
+    $total_scripts += scalar @$scripts;
+    my $set_color = $set_failures ? 'red' : 'green';
+    print colorize(
+        $set_color,
+        "$language: $set_passes passed; $set_failures failed.\n",
+    );
+}
+
+my $total_passes = $total_scripts - $failures;
+my $summary_color = $failures ? 'red' : 'green';
+print colorize(
+    $summary_color,
+    "Summary: $total_passes passed; $failures failed across $total_scripts scripts.\n",
+);
+
+exit($failures ? 1 : 0);

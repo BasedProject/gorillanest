@@ -1,4 +1,11 @@
 # Gorillanest Developer documentation
+This project is for documenting technical details for developers.
+Users should not have to read this,
+but it might be useful regardless.
+
+See also:
+* [test.md](test.md) for technical details of the testing suite
+
 GN stands for Gorillanest in the following document,
 and it refers to the project as a whole.
 

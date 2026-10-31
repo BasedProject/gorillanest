@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+root=$(CDPATH= cd "$(dirname "$0")/.." && pwd)
+cd "$root"
+
+linkchecker=venv/bin/linkchecker
+if [ ! -x "$linkchecker" ]; then
+    printf '%s\n' "Error: linkchecker is missing. Run ./bootstrap.sh first." >&2
+    exit 1
+fi
+
+exec "$linkchecker" -f test/linkcheckerrc http://127.0.0.1:5050

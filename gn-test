@@ -1,4 +1,14 @@
 #!/bin/sh
+set -eu
 
-. venv/bin/activate
-linkchecker -f test/linkcheckerrc http://127.0.0.1:5050
+root=$(CDPATH= cd "$(dirname "$0")" && pwd)
+cd "$root"
+
+if ! pgrep -x hivemind >/dev/null 2>&1; then
+	printf '%s\n' "Error: Gorillanest is not running (Hivemind was not found)." >&2
+	exit 1
+fi
+
+# ---
+carton exec -- test/syntax-check
+test/link-check
