@@ -1,2 +1,4 @@
 [filtering]
 ignorewarnings=http-redirected
+ignore=
+	^http://127\.0\.0\.1:5050/~.*
