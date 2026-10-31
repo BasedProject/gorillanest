@@ -25,10 +25,12 @@ die "Error: --git-root is required\n" unless defined $git_root;
 
 # Init
 my $meta_line = '# GORILLANEST POST-RECEIVE-HOOK v2';
+my $sync_script = dirname(realpath($0)) . '/sync-git-repository-to-remotes';
+$sync_script =~ s/'/'\\''/g;
 my $post_receive_hook = join ("\n", (
     '#!/bin/sh',
     $meta_line,
-    'exec ' . dirname(realpath($0)) . 'gorillanest/utility/sync-git-repository-to-remotes "$PWD"'
+    "exec '$sync_script' \"\$PWD\""
 ));
 
 sub write_post_receive_hook ($path) {

@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# @BAKE ./sync-git-repository-to-remotes /home/anon/Swap/gorillanest/repositories/anon/test.git
+# @BAKE ./sync-git-repository-to-remotes repositories/anon/test.git
 use strict;
 use warnings;
 use feature 'signatures';
