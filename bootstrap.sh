@@ -2,7 +2,7 @@
 set -e
 
 hail_xolatile () {
-    echo -e "\033[33m--\033[0m\n"
+    printf "\033[33m--\033[0m\n\n"
 }
 
 # Python
@@ -30,3 +30,6 @@ for repository in slurp dictate vimdir; do
         git clone --bare "https://github.com/agvxov/$repository.git" "$destination"
     fi
 done
+echo "THE DIRECTORY 'dummy-repositories/' WAS INITIALIZED FOR YOU, YOU MAY WANT TO RUN THE FOLLOWING AS A DEMO:"
+echo "   rm -frfr repositories/"
+echo "   cp -r dummy-repositories/ repositories/"
