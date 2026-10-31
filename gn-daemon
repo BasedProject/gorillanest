@@ -118,6 +118,7 @@ def base_bwrap_sandbox_args(cwd: str) -> [str]:
     args += ["--ro-bind", cwd, cwd]
 
     extras_system_paths = (
+        # regular (gentoo/alpine) set
         "/bin/",
         "/usr/bin/",
         "/lib/",
@@ -125,9 +126,23 @@ def base_bwrap_sandbox_args(cwd: str) -> [str]:
         "/usr/lib/",
         "/usr/lib64/",
         "/usr/libexec/",
+        # esoteric set
+        "/usr/local/bin/",
+        "/lib32/",
+        "/libexec/",
+        "/usr/lib32/",
+        "/usr/local/lib/",
+        "/usr/local/lib32/",
+        "/usr/local/lib64/",
+        "/usr/local/libexec/",
+        "/usr/share/",
+        # NOTE:
+        # /sbin/ and its variants are missing intentially.
+        # This is purely a pre-emptive measure.
     )
     for system_path in extras_system_paths:
-        args += ["--ro-bind", system_path, system_path]
+        if os.path.isdir(system_path):
+            args += ["--ro-bind", system_path, system_path]
 
     return args
 
