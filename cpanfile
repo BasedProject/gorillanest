@@ -15,3 +15,4 @@ requires 'Text::ParseWords';
 requires 'Linux::Inotify2';
 requires 'DBI';
 requires 'DBD::SQLite';
+requires 'CGI::Tiny';

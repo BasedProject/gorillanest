@@ -32,6 +32,25 @@ DISTRIBUTIONS
       perl 5.006001
       strict 0
       warnings 0
+  CGI-Tiny-1.003
+    pathname: D/DB/DBOOK/CGI-Tiny-1.003.tar.gz
+    provides:
+      CGI::Tiny 1.003
+      CGI::Tiny::Multipart 1.003
+    requirements:
+      Carp 0
+      Encode 0
+      Exporter 5.57
+      ExtUtils::MakeMaker 0
+      File::Basename 0
+      File::Temp 0
+      Getopt::Long 0
+      IO::Handle 0
+      JSON::PP 0
+      Sys::Hostname 0
+      Time::Local 0
+      constant 0
+      perl 5.008001
   Config-INI-0.029
     pathname: R/RJ/RJBS/Config-INI-0.029.tar.gz
     provides:
@@ -236,15 +255,6 @@ DISTRIBUTIONS
       perl 5.006
       strict 0
       warnings 0
-  IO-Tty-1.20
-    pathname: T/TO/TODDR/IO-Tty-1.20.tar.gz
-    provides:
-      IO::Pty 1.20
-      IO::Tty 1.20
-      IO::Tty::Constant 1.20
-    requirements:
-      ExtUtils::MakeMaker 0
-      Test::More 0
   IPC-Run-20250809.0
     pathname: N/NJ/NJM/IPC-Run-20250809.0.tar.gz
     provides:
@@ -258,7 +268,6 @@ DISTRIBUTIONS
       IPC::Run::Win32Pump 20250809.0
     requirements:
       ExtUtils::MakeMaker 0
-      IO::Pty 1.08
       Test::More 0.47
   Linux-Inotify2-2.3
     pathname: M/ML/MLEHMANN/Linux-Inotify2-2.3.tar.gz
