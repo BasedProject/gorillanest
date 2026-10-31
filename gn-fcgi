@@ -7,7 +7,7 @@ use Syntax::Keyword::Try;
 use FCGI;
 
 use lib qw(perl);
-BEGIN { require 'cgi.pl'; }
+BEGIN { require 'gn-cgi'; }
 
 sub GN::fcgi() {
         while (1) {
