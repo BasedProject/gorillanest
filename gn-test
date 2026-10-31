@@ -4,11 +4,43 @@ set -eu
 root=$(CDPATH= cd "$(dirname "$0")" && pwd)
 cd "$root"
 
-if ! pgrep -x hivemind >/dev/null 2>&1; then
-	printf '%s\n' "Error: Gorillanest is not running (Hivemind was not found)." >&2
-	exit 1
+overall_status=0
+
+check_hivemind() {
+	if ! command -v pgrep >/dev/null 2>&1; then
+		printf '%s\n' "Error: pgrep is required to check whether Gorillanest is running." >&2
+		return 127
+	fi
+
+	if ! pgrep -x hivemind >/dev/null 2>&1; then
+		printf '%s\n' "Error: Gorillanest is not running (Hivemind was not found)." >&2
+		return 1
+	fi
+}
+
+run_suite() {
+	suite_name=$1
+	shift
+	printf '\n-- %s --\n' "$suite_name"
+
+	if "$@"; then
+		printf '%s\n' "Suite passed."
+	else
+		suite_status=$?
+		printf 'Suite failed (exit %s).\n' "$suite_status" >&2
+		overall_status=1
+	fi
+}
+
+run_suite 'Hivemind running' check_hivemind
+run_suite 'Syntax check' carton exec -- test/syntax-check
+run_suite 'Link check' test/link-check
+
+printf '\n-- Summary --\n'
+if [ "$overall_status" -eq 0 ]; then
+	printf '%s\n' "All checks passed."
+else
+	printf '%s\n' "One or more checks failed."
 fi
 
-# ---
-carton exec -- test/syntax-check
-test/link-check
+exit "$overall_status"
