@@ -1,5 +1,17 @@
 #!/bin/sh
 set -e
+
+missing_programs=0
+for program in carton bwrap git lighttpd; do
+	if ! command -v "$program" >/dev/null 2>&1; then
+		printf 'Error: required system program not found: %s\n' "$program" >&2
+		missing_programs=1
+	fi
+done
+if [ "$missing_programs" -ne 0 ]; then
+	exit 1
+fi
+
 # Bin
 export PATH=".:$PATH"
 # Python
