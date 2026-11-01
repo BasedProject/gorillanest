@@ -49,7 +49,7 @@ The target audience is based internet schitzos.
 * Go
 * Git
 * Lighttpd
-* Bubblewrap (`bwrap`)
+* Bubblewrap
 
 ## Quick start
 Start by pulling in the dependencies that must be hand installed
@@ -87,6 +87,8 @@ and lighttpd configuration such that
 the service can be ran out of the box.
 The system administrator is assumed to be responsible
 for figuring out the rest.
+
+Boolean options are represented as `0` (disabled) or `1` (enabled).
 
 ## Users
 A registered user is a user that can login.
