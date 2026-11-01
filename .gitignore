@@ -9,6 +9,7 @@ dummy-repositories/*
 user-permission-cache.sqlite*
 # Python
 venv/
+__pycache__/
 # Perl
 local/
 vendor/
