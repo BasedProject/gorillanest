@@ -49,6 +49,7 @@ The target audience is based internet schitzos.
 * Go
 * Git
 * Lighttpd
+* Bubblewrap (`bwrap`)
 
 ## Quick start
 Start by pulling in the dependencies that must be hand installed
