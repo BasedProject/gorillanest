@@ -33,6 +33,10 @@ and it refers to the project as a whole.
 | gn-check                 | Sanity check. Warns or errors out depending on the severity. Exists to provide sensible feedback to the user and early on. Invoked by /gorillanest. |
 | user-permission-cache.pl | Creates a temporary database of what repositories each user can access. gn-daemon queries that through sqlite. |
 
+## Configuration conventions
+GN INI option names use SCREAMING_SNAKE_CASE.
+Boolean options use `0`/`1`.
+
 ## Git config extensions
 Git config allows for storing arbitrary data.
 We utilize this to store metadata meaningful to Gorillanest within the repos themselves.
