@@ -23,12 +23,12 @@ from os import environ
 PROJECT_ROOT = Path(__file__).resolve().parent
 
 GLOBAL_CONFIG = {
-    'GIT_ROOT'              : None,
-    'HOST_KEY_PATH'         : None,
-    'LISTEN_ADDR'           : None,
-    'LISTEN_PORT'           : None,
-    'SCRIMSHAW'            : False,
-    'DATABASE_LOCATION'    : None,
+    'GIT_ROOT'          : None,
+    'HOST_KEY_PATH'     : None,
+    'LISTEN_ADDR'       : None,
+    'LISTEN_PORT'       : None,
+    'SCRIMSHAW'         : False,
+    'DATABASE_LOCATION' : None,
 }
 
 permission_cache_path = 'user-permission-cache.sqlite'
@@ -38,13 +38,12 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("gn-daemon")
 
 def validate_key(username, key):
-    if username == 'git':
-        return True
-    if not GLOBAL_CONFIG['SCRIMSHAW']:
-        return False
+    if username == 'git': return True
+    if not GLOBAL_CONFIG['SCRIMSHAW']: return False
 
     try:
-        database_uri = Path(GLOBAL_CONFIG['DATABASE_LOCATION']).resolve().as_uri() + '?mode=ro'
+        database_uri  = Path(GLOBAL_CONFIG['DATABASE_LOCATION']).resolve().as_uri()
+        database_uri += '?mode=ro'
         with closing(sqlite3.connect(database_uri, uri=True)) as database:
             database.execute('PRAGMA query_only = 1')
             user = database.execute(
@@ -67,10 +66,8 @@ class GNServer(asyncssh.SSHServer):
     def begin_auth(self, username):
         log.info(f"Connection initiated by {username}")
         return username != 'git'
-
     def password_auth_supported(self):
         return False
-
     def public_key_auth_supported(self):
         return True
     def validate_public_key(self, username, key):
