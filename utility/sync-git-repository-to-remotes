@@ -9,6 +9,8 @@ use File::Slurp 'slurp';
 use Git::Repository;
 use Cwd qw(realpath);
 
+# XXX must modify its own PERLPATH to add local/ using FindBin
+
 # XXX storing credentials like this is NOT a good idea,
 #      however, for the time being, it stays
 sub fetch_credential {

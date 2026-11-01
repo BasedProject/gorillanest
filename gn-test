@@ -34,6 +34,7 @@ run_suite() {
 
 run_suite 'Hivemind running' check_hivemind
 run_suite 'Syntax check' carton exec -- test/syntax-check
+run_suite 'SSH authentication' venv/bin/python test/authentication.py
 run_suite 'Link check' test/link-check
 
 printf '\n-- Summary --\n'

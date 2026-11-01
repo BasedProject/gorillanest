@@ -13,19 +13,23 @@ import sqlite3
 import tempfile
 import asyncio
 import asyncssh
+from contextlib import closing
+from pathlib import Path
 from shutil import which
 from configobj import ConfigObj
 from sys import exit
 from os import environ
+
+PROJECT_ROOT = Path(__file__).resolve().parent
 
 GLOBAL_CONFIG = {
     'GIT_ROOT'              : None,
     'HOST_KEY_PATH'         : None,
     'LISTEN_ADDR'           : None,
     'LISTEN_PORT'           : None,
-    'DISABLE_AUTHENTICATOR' : None,
+    'SCRIMSHAW'            : False,
+    'DATABASE_LOCATION'    : None,
 }
-AUTHORIZED_KEYS = None
 
 permission_cache_path = 'user-permission-cache.sqlite'
 permission_cache_db = None
@@ -33,22 +37,26 @@ permission_cache_db = None
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("gn-daemon")
 
-def validate_password(username, password):
-    # XXX
-    return False
-    log.info("auth %s : %s", username, password)
-    return username == "anon" and password == "passwd"
-
-# XXX should point to authenticator, unless disabled
-# XXX should not reread every time
 def validate_key(username, key):
+    if username == 'git':
+        return True
+    if not GLOBAL_CONFIG['SCRIMSHAW']:
+        return False
+
     try:
-        if username == 'git': return True
-        # XXX Allows in anyone if the key is correct
-        if AUTHORIZED_KEYS == None: return False
-        return AUTHORIZED_KEYS.validate(key, username, "xolatile.top") != None
-    except:
-        log.error(traceback.format_exc())
+        database_uri = Path(GLOBAL_CONFIG['DATABASE_LOCATION']).resolve().as_uri() + '?mode=ro'
+        with closing(sqlite3.connect(database_uri, uri=True)) as database:
+            database.execute('PRAGMA query_only = 1')
+            user = database.execute(
+                'SELECT ssh_public_key FROM users WHERE username = ?',
+                (username,),
+            ).fetchone()
+        if user is None or not user[0]:
+            return False
+        return asyncssh.import_public_key(user[0]) == key
+    except (sqlite3.Error, ValueError, OSError, TypeError):
+        log.warning("Scrimshaw public-key authentication failed for user %r", username)
+        return False
 
 # Implementing AsyncSSH functionality is done primarily though polymorphism.
 #  This is the class it expects.
@@ -58,12 +66,10 @@ def validate_key(username, key):
 class GNServer(asyncssh.SSHServer):
     def begin_auth(self, username):
         log.info(f"Connection initiated by {username}")
-        return True
+        return username != 'git'
 
     def password_auth_supported(self):
-        return not GLOBAL_CONFIG['DISABLE_AUTHENTICATOR'] == '1'
-    def validate_password(self, username, password):
-        return validate_password(username, password)
+        return False
 
     def public_key_auth_supported(self):
         return True
@@ -149,18 +155,25 @@ def base_bwrap_sandbox_args(cwd: str) -> [str]:
 def bwrap_argv_for_user(user: str, program_argv: [str]) -> ([str], object):
     git_root = GLOBAL_CONFIG['GIT_ROOT']
 
-    bind_args = writable_repos_to_bwrap_bind_args(
-        git_root, get_writable_repositories(user)
-    )
+    bind_args = []
+    if user != 'git':
+        bind_args = writable_repos_to_bwrap_bind_args(
+            git_root, get_writable_repositories(user)
+        )
     args_fd_file = write_bwrap_args_file(bind_args)
 
     user_path = os.path.realpath(os.path.join(git_root, user))
+
+
+    user_bind_args = []
+    if user != 'git' and os.path.isdir(user_path):
+        user_bind_args = ["--bind", user_path, user_path]
 
     argv = [
         which("bwrap"),
         *base_bwrap_sandbox_args(os.getcwd()),
         "--ro-bind", git_root, git_root,
-        "--bind", user_path, user_path,
+        *user_bind_args,
         "--args", str(args_fd_file.fileno()),
         "--",
         *program_argv,
@@ -273,7 +286,7 @@ async def start_server():
     await asyncio.Future()
 
 def init():
-    global GLOBAL_CONFIG, AUTHORIZED_KEYS
+    global GLOBAL_CONFIG
 
     config      = ConfigObj('config.default.ini')
     user_config = ConfigObj('config.ini')
@@ -282,6 +295,7 @@ def init():
     config_dict = {}
     config_dict.update(config.get('core', {}).items())
     config_dict.update(config.get('ssh', {}).items())
+    config_dict.update(config.get('scrimshaw', {}).items())
     
     for k, v in config_dict.items():
         if k in GLOBAL_CONFIG:
@@ -290,10 +304,15 @@ def init():
             log.fatal(f"unknown config key used '{k}'")
             exit(1)
 
-    log.info(GLOBAL_CONFIG)
+    # XXX not scalable, must be generalized
+    if GLOBAL_CONFIG['SCRIMSHAW'] not in ('0', '1'):
+        raise ValueError('[ssh]/SCRIMSHAW must be 0 or 1')
+    GLOBAL_CONFIG['SCRIMSHAW'] = GLOBAL_CONFIG['SCRIMSHAW'] == '1'
 
-    try: AUTHORIZED_KEYS = asyncssh.read_authorized_keys(".env/authorized_keys")
-    except: pass
+    if GLOBAL_CONFIG['SCRIMSHAW'] and not GLOBAL_CONFIG['DATABASE_LOCATION']:
+        raise ValueError('[scrimshaw]/DATABASE_LOCATION is required when Scrimshaw is enabled')
+
+    log.info(GLOBAL_CONFIG)
 
 if __name__ == "__main__":
     init()
